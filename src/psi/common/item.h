@@ -58,7 +58,7 @@ class Item {
             if (str.empty()) {
                 throw std::invalid_argument("str cannot be empty");
             }
-            util::copy_bytes(src.data(),str.size()*sizeof(CharT),value_.data());
+            util::copy_bytes(str.data(),str.size()*sizeof(CharT),value_.data());
             // copy_bytes(str.data(), str.size() * sizeof(CharT));
             return *this;
         }

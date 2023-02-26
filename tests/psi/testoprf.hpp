@@ -1,3 +1,5 @@
+#pragma once
+
 #include "psi/oprf/dhoprf_sender.h"
 #include "psi/oprf/dhoprf_receiver.h"
 #include "psi/common/thread_pool_mgr.h"
@@ -136,10 +138,3 @@ void testOPRF(){
 }
 
 
-int main(){
-    PSI::ThreadPoolMgr::SetThreadCount(4);
-
-    testOPRF();
-    std::cout<<"hello"<<std::endl;
-    return 0;
-}

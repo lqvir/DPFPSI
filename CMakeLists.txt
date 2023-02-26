@@ -10,12 +10,12 @@ message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}")
 ####################
 # Dependencies     #
 ####################
-
+find_package(Kuku REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Microsoft.GSL REQUIRED)
 # find_package(Boost REQUIRED)
 message(${VCPKG_TARGET_TRIPLET})
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 ####################
 # Libs             #
 ####################
@@ -71,7 +71,9 @@ add_subdirectory(tests/psi)
 target_sources(psitest PRIVATE ${PSI_TEST_FILES})
 
 target_link_libraries(psitest PRIVATE psi)
+
 message(${Microsoft.GSL_DIR})
+
 add_executable(test test.cpp)
 target_link_libraries(test OpenSSL::Crypto)
 
