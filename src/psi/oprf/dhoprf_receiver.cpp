@@ -85,6 +85,7 @@ namespace PSI{
                 // std::cout<<len<<std::endl;
                 // printf("\n");
                 // util::printchar(buffer,POINT_COMPRESSED_BYTE_LEN);
+                out[idx].resize(oprf_value_bytes);
                 util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,out[idx].data(),oprf_value_bytes);
             }
             return out;

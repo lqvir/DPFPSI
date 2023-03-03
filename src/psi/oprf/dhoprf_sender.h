@@ -6,7 +6,7 @@
 #include "openssl/rand.h"
 // #include "ecpoint_openssl.h"
 #include "psi/common/item.h"
-
+#include <span>
 namespace PSI{
     namespace OPRF{
 

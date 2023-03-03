@@ -6,7 +6,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}")
-
+add_compile_options("/MTd")
 ####################
 # Dependencies     #
 ####################
@@ -49,7 +49,9 @@ add_library(psi)
 target_include_directories(psi PUBLIC ${OPENSSL_INCLUDE_DIR})
 target_link_libraries(psi 
     PRIVATE OpenSSL::Crypto 
-    PUBLIC Microsoft.GSL::GSL)
+    PUBLIC Microsoft.GSL::GSL
+    PUBLIC Kuku::kuku
+    )
 target_sources(psi PRIVATE ${PSI_SOURCE_FILES})
 
 target_include_directories(psi PUBLIC
