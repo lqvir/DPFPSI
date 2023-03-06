@@ -11,7 +11,11 @@ namespace PSI
         {
          
 
-            // step 2
+
+        }
+        
+        void dpf_server::Gen(std::bitset<DPF_INPUT_BIT_SIZE> alpha_bitset,uint8_t beta,DPFKey& key0,DPFKey& key1){
+                        // step 2
             Random_Bitset(Delta);
 
             Delta[0] = 1;
@@ -20,10 +24,9 @@ namespace PSI
             // step 3 
             Random_Bitset(key0.share);
             key1.share = key0.share ^ Delta;
-
-        }
         
-        void dpf_server::Gen(std::bitset<DPF_INPUT_BIT_SIZE> alpha_bitset,uint8_t beta){
+            
+            
             // std::stringstream ss;
             // std::string alpha_bit;
             // for(size_t i = 0,char temp[16] ; i < alpha.size(); i++){
@@ -160,13 +163,7 @@ namespace PSI
             key0.cw_n_plus_1 = ((uint8_t)(share_n_0[0]-share_n_1[0]))*((uint8_t)(share_n_0[2]-share_n_1[2])+beta);
             key1.cw_n_plus_1 = key0.cw_n_plus_1;
         }
-        DPFKey dpf_server::get_key0(){
-            return key0;
-        }
-        DPFKey dpf_server::get_key1(){
-            return key1;
-        }
-        
+
         
     } // namespace DPF
     

@@ -63,6 +63,7 @@ namespace PSI{
             auto l = EC_POINT_point2oct(curve,EC_OPRFValue,POINT_CONVERSION_COMPRESSED,buffer,POINT_COMPRESSED_BYTE_LEN,ctx_ecc);
             // std::cout<<l<<std::endl;
             // util::printchar(buffer,POINT_COMPRESSED_BYTE_LEN);
+            // std::cout << std::endl;
             OPRFValue result;
             result.resize(oprf_value_bytes);
             

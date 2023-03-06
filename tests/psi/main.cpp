@@ -5,7 +5,7 @@
 int main(){
     PSI::ThreadPoolMgr::SetThreadCount(4);
 
-    test_cuckoo();
+    test_unbanlanced();
 
     std::cout<<"hello"<<std::endl;
     return 0;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "psi/aid_server.h"
 #include "psi/server.h"
 #include "psi/client.h"
 void test_server(){
@@ -29,5 +30,94 @@ void test_cuckoo(){
     auto response = server.process_query(query);
     auto value = client.OPRFResponse(response);
     client.Cuckoo_All_location(value);
+
+}
+
+void test_DPF(){
+    std::vector<PSI::Item> items;
+    items.emplace_back(0x123,0x456);
+    items.emplace_back(0x125,0x458);
+    items.emplace_back(0x128,0x459);
+
+    std::vector<PSI::Label> label(3);
+    label[0].assign(8,'0');
+    label[1].assign(8,'1');
+    label[2].assign(8,'2');
+
+    PSI::Server::PSIServer server(3);
+    PSI::Client::PSIClient client(3);
+    PSI::AidServer::AidServer aidserver;
+
+    auto hash_table = server.init(items,label);
+    
+    auto query = client.OPRFQuery(items);
+    auto response = server.process_query(query);
+    auto value = client.OPRFResponse(response);
+    client.Cuckoo_All_location(value);
+    aidserver.init(hash_table);
+    client.DPFGen();
+
+    auto ks = client.getKs();
+    auto ka = client.getKa();
+
+    auto response_s = server.DPFShare(ks);
+    auto response_a = server.DPFShare(ka);
+
+    client.DPFConstruct(response_s,response_a);
+    client.DictGen(response_s,response_a);
+    client.InsectionCheck(value,items);
+}
+
+void test_unbanlanced(){
+
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    for(size_t idx = 101; idx < 101+4 ; idx ++){
+        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
+        ServerSet.emplace_back(0x123+idx,0x456*idx);   
+    }
+    
+    for(size_t idx = 233; idx < 245 ; idx ++){
+        ServerSet.emplace_back(0x789+idx,0xABC*idx);   
+    }
+
+    for(auto x:ServerSet){
+        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
+    }
+    for(auto x:ReceiverSet){
+        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
+    }
+    auto sender_size = ServerSet.size();
+    auto receiver_size = ReceiverSet.size();
+    std::vector<PSI::Label> label(sender_size);
+    for(size_t idx = 0 ; idx < sender_size ; idx ++){
+        label[idx].assign(8,1);
+        label[idx][7] += (uint8_t)idx;
+    }
+
+    PSI::Server::PSIServer server(sender_size);
+    PSI::Client::PSIClient client(receiver_size);
+    PSI::AidServer::AidServer aidserver;
+
+    auto hash_table = server.init(ServerSet,label);
+    
+    auto query = client.OPRFQuery(ReceiverSet);
+    auto response = server.process_query(query);
+    auto value = client.OPRFResponse(response);
+    client.Cuckoo_All_location(value);
+    aidserver.init(hash_table);
+    client.DPFGen();
+
+    auto ks = client.getKs();
+    auto ka = client.getKa();
+
+    auto response_s = server.DPFShare(ks);
+    auto response_a = server.DPFShare(ka);
+
+    client.DPFConstruct(response_s,response_a);
+    client.DictGen(response_s,response_a);
+    client.InsectionCheck(value,ReceiverSet);
+
 
 }

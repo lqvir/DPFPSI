@@ -6,7 +6,7 @@
 #include <vector>
 #include "openssl/evp.h"
 #include "openssl/sha.h"
-
+#include "psi/common/utils.h"
 #include "psi/param.h"
 namespace PSI{
     namespace OPRF{
@@ -31,11 +31,12 @@ namespace PSI{
             BIGNUM *x = BN_new();
             unsigned char buffer[32];
             memset(buffer, 0, 32);
-            memcpy(buffer, &var, 16);  // load block to buffer  
+            memcpy(buffer, var, 16);  // load block to buffer  
             BasicHash(buffer, 16, buffer); // initial hash to get the indication bit of y coordinate
             int y_bit = 0x01 & buffer[0]; // this is an ad-hoc method
             while (true) { 
                 BasicHash(buffer, 32, buffer); // iterated hash, modeled as random oracle
+                // util::printchar(buffer,32);
                 BN_bin2bn(buffer, 32, x);
                 if(EC_POINT_set_compressed_coordinates(curve, ecp_result, x, y_bit, ctx)==1) break;              
             }

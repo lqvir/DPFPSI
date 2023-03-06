@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-
+#include <string>
 namespace PSI
 {
     constexpr size_t Label_bit_size = 64;
@@ -8,7 +8,7 @@ namespace PSI
 
     constexpr size_t leading_zero_length =  8 ;
 
-
+    
     using Label = std::vector<uint8_t>;
 
 

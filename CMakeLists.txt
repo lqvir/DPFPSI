@@ -6,7 +6,12 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}")
-add_compile_options("/MTd")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+    add_compile_options("/MTd")
+else()
+add_compile_options("/MT")
+endif()
 ####################
 # Dependencies     #
 ####################

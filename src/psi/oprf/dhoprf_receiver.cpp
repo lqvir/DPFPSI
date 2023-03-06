@@ -51,6 +51,13 @@ namespace PSI{
                 key_inv[idx] = BN_new();
                 temp = BlockToECPoint(curve,ref.data(),NULL);
                 
+            // {
+            //     unsigned char* buffer1 = new unsigned char[POINT_COMPRESSED_BYTE_LEN];
+            //     auto ll = EC_POINT_point2oct(curve,temp,POINT_CONVERSION_COMPRESSED,buffer1,POINT_COMPRESSED_BYTE_LEN,ctx_ecc);
+            //     printf("re");
+            //     util::printchar(buffer1,POINT_COMPRESSED_BYTE_LEN);
+            // }
+
                 MakeRandomNonzeroScalar(oprf_key,order);
                 EC_POINT_mul(curve,temp,NULL,temp,oprf_key,ctx_ecc);
                 BN_mod_inverse(key_inv[idx], oprf_key, order, ctx_ecc);

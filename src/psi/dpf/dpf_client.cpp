@@ -5,7 +5,7 @@ namespace PSI
     namespace DPF
     {
         
-        uint8_t dpf_client::Eval(std::bitset<DPF_INPUT_BIT_SIZE> x_bitset,uint8_t party_number){
+        uint8_t dpf_client::Eval(std::bitset<DPF_INPUT_BIT_SIZE> x_bitset,uint8_t party_number,const DPFKey& key){
             std::bitset<Lambda> share_i = key.share;
             
             // std::cout<<x_bitset<<std::endl;

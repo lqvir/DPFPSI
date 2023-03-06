@@ -118,14 +118,20 @@ void testOPRF(){
 
     oprfsender.init();
     oprfreceier.init();
-    std::vector<PSI::Item> input_V;
-    for(int i = 0; i < 10; i++){
-        input_V.emplace_back(i*1315158,i<<20);
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    for(size_t idx = 101; idx < 101+4 ; idx ++){
+        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
+        ServerSet.emplace_back(0x123+idx,0x456*idx);   
     }
-    gsl::span<PSI::Item> input(input_V.data(),10);
-    gsl::span<PSI::Item> input2(input_V.data(),20);
-    auto value = oprfsender.ComputeHashes(input2);
-    auto qurie = oprfreceier.process_items(input);
+    
+    for(size_t idx = 233; idx < 245 ; idx ++){
+        ServerSet.emplace_back(0x789+idx,0xABC*idx);   
+    }
+    auto value = oprfsender.ComputeHashes(ServerSet);
+    
+    auto qurie = oprfreceier.process_items(ReceiverSet);
     auto response = oprfsender.ProcessQeries(qurie);
     auto rvalue = oprfreceier.process_response(response);
     for(auto x:value){
@@ -138,3 +144,42 @@ void testOPRF(){
 }
 
 
+void test_to_ECPOINT(){
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    for(size_t idx = 0; idx < 4 ; idx ++){
+        uint64_t buff[2];
+        RAND_bytes((uint8_t*)buff,16);
+        ReceiverSet.emplace_back(buff[0],buff[1]);
+        ServerSet.emplace_back(buff[0],buff[1]);   
+    }
+    
+    for(size_t idx = 0; idx < 12 ; idx ++){
+        uint64_t buff[2];
+        RAND_bytes((uint8_t*)buff,16);
+        ServerSet.emplace_back(buff[0],buff[1]);   
+
+    }
+    BN_CTX* bn_ctx = BN_CTX_new();
+    EC_GROUP* curve = EC_GROUP_new_by_curve_name(415);
+    for(auto x:ServerSet){
+        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
+        
+        auto res = PSI::OPRF::BlockToECPoint(curve,x.get_as<char>().data(),NULL);
+        uint8_t buffer1[33];
+        auto ll = EC_POINT_point2oct(curve,res,POINT_CONVERSION_COMPRESSED,buffer1,33,bn_ctx);
+        printf("se");
+        PSI::util::printchar(buffer1,33);
+    }
+    for(auto x:ReceiverSet){
+        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
+
+        auto res = PSI::OPRF::BlockToECPoint(curve,x.get_as<char>().data(),NULL);
+        uint8_t buffer1[33];
+        auto ll = EC_POINT_point2oct(curve,res,POINT_CONVERSION_COMPRESSED,buffer1,33,bn_ctx);
+        printf("se");
+        PSI::util::printchar(buffer1,33);
+
+    }
+}

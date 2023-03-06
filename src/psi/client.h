@@ -1,14 +1,18 @@
 #pragma once
 
 #include "oprf/dhoprf_receiver.h"
+#include "dpf/dpf_server.h"
 #include "param.h"
 
 #include <vector>
 #include <span>
+#include <unordered_map>
 
 namespace PSI{
     namespace Client
     {
+        
+
         class PSIClient{
             public:
                 PSIClient() = default;
@@ -16,10 +20,28 @@ namespace PSI{
                 std::vector<std::string> OPRFQuery(const std::vector<Item>& input);
                 std::vector<std::string> OPRFResponse(const std::vector<std::string>& response);
                 void Cuckoo_All_location(const std::vector<std::string>& oprf_input);
+                void DPFGen(
+                    // KeyList& Ks,KeyList& Ka
+                );
+                DPF::DPFKeyList getKs(){
+                    return Ks;
+                }
+                DPF::DPFKeyList getKa(){
+                    return Ka;
+                }
+
+                void DPFConstruct(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA);
+
+                void DictGen(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA);
+
+                void InsectionCheck(const std::vector<std::string>& oprf_input,const std::vector<Item>& input);
             private:
                 OPRF::OPRFReceiver DHOPRFReceiver;
                 size_t client_set_size_;
-                
+                std::vector<std::vector<size_t>> IndexSets_by_block; 
+                DPF::dpf_server DPFServer;
+                DPF::DPFKeyList Ks,Ka;
+                std::unordered_map<size_t,std::string> Dict;
         };
 
     } // namespace Client

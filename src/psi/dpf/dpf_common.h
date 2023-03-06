@@ -3,6 +3,7 @@
 #include "psi/common/item.h"
 #include "openssl/evp.h"
 #include "openssl/rand.h"
+#include "psi/cuckoo_hash/cuckoo.h"
 #include <bitset>
 namespace PSI
 {
@@ -15,6 +16,10 @@ namespace PSI
         constexpr size_t Lambda = 128 ;
         constexpr size_t Lambda_bytes = 16;
 
+        struct DPFResponse{
+            std::array<std::array<uint8_t,cuckoo::block_size>,cuckoo::max_set_size> DPFValue;
+            std::vector<std::string> cuckoo_table;
+        };
         struct DPFKey
         {
             /* data */
@@ -22,7 +27,28 @@ namespace PSI
             std::array<std::bitset<Lambda>,DPF_INPUT_BIT_SIZE - 1> cw;
             std::bitset<Lambda+1> cw_n;
             uint8_t cw_n_plus_1;
+
+            inline void RandomKey();
         };
+
+        typedef  std::array<std::array<DPF::DPFKey,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyList; 
+        typedef std::array<DPFResponse ,cuckoo::block_num> DPFResponseList;
+
+        inline void DPFKey::RandomKey(){
+            const size_t all_len = Lambda_bytes*(DPF_INPUT_BIT_SIZE+1)+2;
+            uint8_t buffer[all_len];
+            RAND_bytes(buffer,all_len);
+            std::stringstream ss;
+            for(auto x : buffer){
+                ss << std::bitset<8>(x);
+            }
+            ss >> this->share;
+            for(size_t idx = 0; idx < DPF_INPUT_BIT_SIZE - 1; idx++){
+                ss >> this->cw.at(idx);
+            }
+            ss >> cw_n;
+            this->cw_n_plus_1 = buffer[all_len-1];
+        }
 
         inline void sigma(uint8_t* input){
             uint64_t* in_u64 =(uint64_t*) input;
