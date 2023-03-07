@@ -30,8 +30,6 @@ namespace PSI{
                     return Ka;
                 }
 
-                void DPFConstruct(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA);
-
                 void DictGen(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA);
 
                 void InsectionCheck(const std::vector<std::string>& oprf_input,const std::vector<Item>& input);

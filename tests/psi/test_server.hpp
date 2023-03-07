@@ -63,7 +63,6 @@ void test_DPF(){
     auto response_s = server.DPFShare(ks);
     auto response_a = server.DPFShare(ka);
 
-    client.DPFConstruct(response_s,response_a);
     client.DictGen(response_s,response_a);
     client.InsectionCheck(value,items);
 }
@@ -115,7 +114,6 @@ void test_unbanlanced(){
     auto response_s = server.DPFShare(ks);
     auto response_a = server.DPFShare(ka);
 
-    client.DPFConstruct(response_s,response_a);
     client.DictGen(response_s,response_a);
     client.InsectionCheck(value,ReceiverSet);
 

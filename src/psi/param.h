@@ -8,9 +8,8 @@ namespace PSI
 
     constexpr size_t leading_zero_length =  8 ;
 
-    
     using Label = std::vector<uint8_t>;
 
-
+    #define LogLevel 1
 
 } // namespace PSI

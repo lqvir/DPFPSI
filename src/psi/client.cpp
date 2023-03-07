@@ -67,35 +67,10 @@ namespace PSI
         }
     }
 
-    void PSIClient::DPFConstruct(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA){
-        for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
-            auto& DPFResponseS = ResponseListFromS[block_id];
-            auto& DPFResponseA = ResponseListFromA[block_id];
-
-            for(size_t KeyID = 0; KeyID < cuckoo::max_set_size ; KeyID++){
-                auto& DPFValueListS =  DPFResponseS.DPFValue[KeyID];
-                auto& DPFValueListA =  DPFResponseA.DPFValue[KeyID];
-
-                for(size_t ValueID = 0; ValueID < cuckoo::block_size; ValueID++){
-                    auto temp = DPFServer.reconstruct(DPFValueListA[ValueID],DPFValueListS[ValueID]);
-                    // printf("block_id %d KeyID %d ValueID %d : %02x \n",block_id,KeyID,ValueID,temp);
-                }
-
-            }
-            // std::cout << "cuckoo table S " << std::endl;
-            // for(auto x : DPFResponseS.cuckoo_table){
-            //     util::printchar((uint8_t*)x.data(),leading_zero_length+Label_byte_size);
-            // }
-            // std::cout << "cuckoo table A " << std::endl;
-            // for(auto x : DPFResponseA.cuckoo_table){
-            //     util::printchar((uint8_t*)x.data(),leading_zero_length+Label_byte_size);
-            // }
-        }
-    }
+    
 
     void PSIClient::DictGen(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA){
         
-      
         
         for(size_t block_id =0 ; block_id < cuckoo::block_num ; block_id ++ ){
             auto& DPFResponseS = ResponseListFromS[block_id];

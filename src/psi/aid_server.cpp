@@ -33,11 +33,6 @@ namespace PSI{
                     tpm.thread_pool().enqueue(DPFValueWork, thread_idx, task_count);
             }
 
-
-            for(size_t block_id = 0; block_id < cuckoo::block_num;block_id++){
-                dpf_response_list.at(block_id).cuckoo_table = 
-                    std::vector<std::string>(hash_table.begin()+cuckoo::block_size*block_id,hash_table.begin()+cuckoo::block_size*(block_id+1));
-            }
             
             for (auto &f : futures) {
                 f.get();
