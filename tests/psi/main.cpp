@@ -6,8 +6,8 @@
 int main(){
     PSI::ThreadPoolMgr::SetThreadCount(1);
 
+    test_unbanlancedFullEval();
     test_unbanlanced();
-
     std::cout<<"hello"<<std::endl;
     return 0;
 }

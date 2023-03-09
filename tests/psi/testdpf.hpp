@@ -34,3 +34,23 @@ void test_dpf(){
     printf("%02x\n",ans);
     
 }
+
+void test_GenTree(){
+    PSI::DPF::dpf_server test;
+    PSI::DPF::dpf_client server(0);
+    PSI::DPF::dpf_client aid(1);
+    test.init();
+    PSI::DPF::DPFKey key0,key1;
+    test.Gen(23,1,key0,key1);
+
+    auto tree0 = server.DPFGenTree(key0);
+    auto tree1 = aid.DPFGenTree(key1);
+    for(size_t idx = 0; idx < PSI::cuckoo::block_size;idx++){
+        auto x1 = server.Eval(idx,key0);
+        auto x2 = aid.Eval(idx,key1);
+        printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,x1,x2,test.reconstruct(x1,x2));
+        printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,tree0[idx],tree1[idx],test.reconstruct(tree0[idx],tree1[idx]));
+
+    }
+}
+

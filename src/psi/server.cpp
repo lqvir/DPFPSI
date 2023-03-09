@@ -90,6 +90,10 @@ namespace PSI
             return DPFClient.DPFShare(keylist,hash_table);
         }
 
+        DPF::DPFResponseList PSIServer::DPFShareFullEval(const DPF::DPFKeyList& keylist){
+            return DPFClient.FullEval(keylist,hash_table);
+        }
+
     } // namespace Server
     
 } // namespace PSI

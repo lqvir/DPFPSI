@@ -1,3 +1,5 @@
+#include <stack>
+
 #include "dpf_client.h"
 
 #include "psi/common/thread_pool_mgr.h"
@@ -24,9 +26,8 @@ namespace PSI
                     Hs_out ^= key.cw[i-1];
                 }
                 share_i = Hs_out;
-                // std::cout << "i:" << i << std::endl;
-                // std::cout << share_i << std::endl;
             }
+            // std::cout << share_i << std::endl;
             
             std::bitset<Lambda> high_low;
             std::bitset<Lambda> temp = share_i;
@@ -117,7 +118,120 @@ namespace PSI
 
             return dpf_response_list;
         }
-        
+
+        // simply DPFTree 
+        pcGGMLeafList dpf_client::DPFGenTree(const DPFKey& key){
+            pcGGMLeafList ans;
+            size_t cnt = 0;
+            std::stack<std::pair<std::bitset<Lambda>,size_t>> DFSStack;
+
+            DFSStack.push(std::make_pair(key.share,0));
+            auto mid_string1 = key.cw_n.to_string();
+            auto mid_string0 = key.cw_n.to_string();
+            
+            mid_string1.erase(mid_string1.size()-2,1);
+            mid_string0.pop_back();
+            
+            // std::cout << std::bitset<128>(mid_string0) << std::endl;
+            // std::cout << std::bitset<128>(mid_string1) << std::endl;
+            
+            while (!DFSStack.empty())
+            {
+                /* code */
+                auto now = DFSStack.top();
+                DFSStack.pop();
+
+                if(now.second == DPF_INPUT_BIT_SIZE - 1){ // n - 1 break the loop 
+                    {
+                        std::bitset<Lambda> share_n0 ;
+                        std::bitset<Lambda> share_n1 ;
+                        Keyed_hash_func(now.first,share_n0);
+                        Keyed_hash_func(now.first^std::bitset<Lambda>(1),share_n1);
+
+                        if(now.first.test(0)){
+                           
+
+                            share_n0 ^= std::bitset<128>(mid_string0);
+                            share_n1 ^= std::bitset<128>(mid_string1);
+                        }
+                        // std::cout << share_n << std::endl;
+                        if(party_number_){
+                            ans[cnt] = (uint8_t)((uint8_t)(-1)*(share_n0[2]+share_n0[0]*key.cw_n_plus_1));
+                            cnt++;
+                            ans[cnt] = (uint8_t)((uint8_t)(-1)*(share_n1[2]+share_n1[0]*key.cw_n_plus_1));
+                            
+                        }
+                        else{
+                            ans[cnt] = (uint8_t)((share_n0[2]+share_n0[0]*key.cw_n_plus_1));
+                            cnt++;
+                            ans[cnt] = (uint8_t)((share_n1[2]+share_n1[0]*key.cw_n_plus_1));
+                        }
+                        // std::cout << (int)ans[cnt-1] << (int)ans[cnt] << std::endl;
+                    }
+
+                    cnt++;
+                    if(cnt >= cuckoo::block_size){
+                        break;
+                    }
+                }
+                else{
+                    
+                    std::bitset<Lambda> Hs_out;
+                    Keyed_hash_func(now.first,Hs_out);
+                    
+                    if(now.first.test(0)){
+                        Hs_out ^= key.cw.at(DPF_INPUT_BIT_SIZE-2-now.second);
+                    }
+                    DFSStack.push(std::make_pair(Hs_out^now.first,now.second+1));
+
+                    DFSStack.push(std::make_pair(Hs_out,now.second+1));
+                }
+
+            }
+            
+            return ans;
+        }
+
+
+
+        DPFResponseList dpf_client::FullEval(const DPFKeyList& dpfkeylist,const std::vector<LabelMask>& hash_table){
+            DPF::DPFResponseList dpf_response_list;
+            ThreadPoolMgr tpm;
+            size_t task_numbers  = cuckoo::block_num*cuckoo::max_set_size;
+            size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), task_numbers);
+            std::vector<std::future<void>> futures(task_count);
+            auto FullEvalWorker = [&](size_t start_idx,size_t step){
+                for(size_t idx = start_idx; idx < task_numbers; idx += step ){
+                    auto blockid = idx/cuckoo::max_set_size;
+                    auto keyid = idx%cuckoo::max_set_size;
+                    auto &value =   dpf_response_list.at(blockid).at(keyid); 
+                    const auto& key = dpfkeylist.at(blockid).at(keyid);
+
+                    auto LeafList = DPFGenTree(key);
+                    for(size_t idx = 0; idx < cuckoo::block_size; idx++){
+
+                        if( LeafList[idx]&1){
+                            value = xor_LabelMask(value,hash_table.at(cuckoo::get_BinID(idx,blockid)));
+                        }
+
+                    }
+                    
+                }
+            };
+
+
+            for (size_t thread_idx = 0; thread_idx < task_count; thread_idx++) {
+                futures[thread_idx] =
+                    tpm.thread_pool().enqueue(FullEvalWorker, thread_idx, task_count);
+            }
+            
+            for (auto &f : futures) {
+                f.get();
+            }
+
+            return dpf_response_list;
+
+        }
 
     } // namespace DPF
     

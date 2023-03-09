@@ -9,6 +9,7 @@ namespace PSI{
             AidServer():DPFClient(0){};
             void init(const std::vector<LabelMask>& hash_table_input);
             DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist,const std::vector<LabelMask>& hash_table_input);
+            DPF::DPFResponseList DPFShareFullEval(const DPF::DPFKeyList& keylist,const std::vector<LabelMask>& hash_table_input);
             
         private:
 

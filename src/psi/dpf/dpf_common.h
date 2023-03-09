@@ -11,8 +11,8 @@ namespace PSI
     {
         
         const uint8_t AESKEY[16] = {0xeb,0x28,0xcc,0xa6,0x5c,0x64,0x48,0xa1,0xf9,0x98,0x02,0xe8,0x68,0x0c,0x70,0xfd};
-        constexpr size_t DPF_INPUT_BIT_SIZE = 32;
-        constexpr size_t DPF_INPUT_BYTE_SIZE = 4;
+        constexpr size_t DPF_INPUT_BIT_SIZE = 16;
+        constexpr size_t DPF_INPUT_BYTE_SIZE = 2;
         constexpr size_t Lambda = 128 ;
         constexpr size_t Lambda_bytes = 16;
 
@@ -32,6 +32,7 @@ namespace PSI
 
         typedef  std::array<std::array<DPF::DPFKey,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyList; 
         typedef std::array<DPFResponse ,cuckoo::block_num> DPFResponseList;
+        typedef std::array<uint8_t,((size_t)1<<DPF_INPUT_BIT_SIZE)> pcGGMLeafList;
 
         inline void DPFKey::RandomKey(){
             const size_t all_len = Lambda_bytes*(DPF_INPUT_BIT_SIZE+1)+2;

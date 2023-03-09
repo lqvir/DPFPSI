@@ -20,6 +20,7 @@ namespace PSI
             std::vector<LabelMask> init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
             std::vector<std::string> process_query(const std::vector<std::string>& input);
             DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist);
+            DPF::DPFResponseList DPFShareFullEval(const DPF::DPFKeyList& keylist);
         private:
             std::vector<LabelMask> hash_table;
 

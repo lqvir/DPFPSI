@@ -13,7 +13,9 @@ namespace PSI
             ~dpf_client() = default;
       
             uint8_t Eval(std::bitset<DPF_INPUT_BIT_SIZE> x_bitset,const DPFKey& key);
-            DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& dpfkeylist,const std::vector<LabelMask>& hash_table);
+            DPFResponseList DPFShare(const DPFKeyList& dpfkeylist,const std::vector<LabelMask>& hash_table);
+            DPFResponseList FullEval(const DPFKeyList& dpfkeylist,const std::vector<LabelMask>& hash_table);
+            pcGGMLeafList DPFGenTree(const DPFKey& key);
         private:
             uint8_t party_number_;
         };
