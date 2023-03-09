@@ -1,11 +1,15 @@
 #include "dpf_client.h"
 
+#include "psi/common/thread_pool_mgr.h"
 namespace PSI
 {
     namespace DPF
     {
+        dpf_client::dpf_client(uint8_t party_number):party_number_(party_number){};
         
-        uint8_t dpf_client::Eval(std::bitset<DPF_INPUT_BIT_SIZE> x_bitset,uint8_t party_number,const DPFKey& key){
+
+
+        uint8_t dpf_client::Eval(std::bitset<DPF_INPUT_BIT_SIZE> x_bitset,const DPFKey& key){
             std::bitset<Lambda> share_i = key.share;
             
             // std::cout<<x_bitset<<std::endl;
@@ -43,7 +47,7 @@ namespace PSI
                 share_n ^= std::bitset<128>(mid_string);
             }
             // std::cout << share_n << std::endl;
-            if(party_number){
+            if(party_number_){
                 return (uint8_t)((uint8_t)(-1)*(share_n[2]+share_n[0]*key.cw_n_plus_1));
             }
             else{
@@ -51,7 +55,68 @@ namespace PSI
             }
 
         }
+        DPF::DPFResponseList dpf_client::DPFShare(const DPF::DPFKeyList& dpfkeylist,const std::vector<LabelMask>& hash_table){
+            
+            
+            DPF::DPFResponseList dpf_response_list;
+            ThreadPoolMgr tpm;
+            size_t task_numbers  = cuckoo::block_num*cuckoo::max_set_size;
+            size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), task_numbers);
+            std::vector<std::future<void>> futures(task_count);
 
+            
+             auto DPFValueEval = [&](size_t blockid,size_t key_id) {
+                auto &value =   dpf_response_list.at(blockid).at(key_id); 
+                
+                const auto& key = dpfkeylist.at(blockid).at(key_id);
+                for(size_t idx = 0; idx < cuckoo::block_size; idx++){
+                    if(Eval(idx,key)&1){
+                        value = xor_LabelMask(value,hash_table.at(cuckoo::get_BinID(idx,blockid)));
+#if LogLevel == 0
+                
+                std::cout << "value before ";
+                util::printchar(value.value().data(),Leading_zero_length+Label_byte_size);
+                std::cout << "hash ";
+                util::printchar(hash_table.at(cuckoo::get_BinID(idx,blockid)).value().data(),Leading_zero_length+Label_byte_size);
+                std::cout << "value end ";
+                util::printchar(value.value().data(),Leading_zero_length+Label_byte_size);
+#endif
+
+                    }
+                }
+#if LogLevel == 0
+                std::cout << "value final ";
+                util::printchar(value.value().data(),Leading_zero_length+Label_byte_size);
+                std::cout << std::endl;
+#endif
+            };
+
+            auto DPFValueWork = [&](size_t start_idx,size_t step){
+                for(size_t idx = start_idx; idx < task_numbers; idx += step ){
+                    DPFValueEval(idx/cuckoo::max_set_size,idx%cuckoo::max_set_size);
+                }
+            };
+
+             for (size_t thread_idx = 0; thread_idx < task_count; thread_idx++) {
+                futures[thread_idx] =
+                    tpm.thread_pool().enqueue(DPFValueWork, thread_idx, task_count);
+            }
+            
+            for (auto &f : futures) {
+                f.get();
+            }
+#if LogLevel == 0
+            std::cout << "dpf response list" << std::endl;
+            for(auto x : dpf_response_list){
+                std::cout << std::endl;
+                for(auto y : x){
+                    util::printchar(y.value().data(),Leading_zero_length+Label_byte_size);
+                }
+            }
+#endif 
+
+            return dpf_response_list;
+        }
         
 
     } // namespace DPF

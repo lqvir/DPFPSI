@@ -39,7 +39,7 @@ namespace PSI{
                 std::vector<std::vector<size_t>> IndexSets_by_block; 
                 DPF::dpf_server DPFServer;
                 DPF::DPFKeyList Ks,Ka;
-                std::unordered_map<size_t,std::string> Dict;
+                std::unordered_map<size_t,LabelMask> Dict;
         };
 
     } // namespace Client

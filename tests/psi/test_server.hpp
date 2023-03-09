@@ -7,7 +7,11 @@ void test_server(){
     std::vector<PSI::Item> items;
     items.emplace_back(0x123,0x456);
     std::vector<PSI::Label> label;
-    label.emplace_back((0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8));
+    PSI::Label test(std::array<uint8_t,8>{1,2,3,4,5,6,7,8});
+    label.emplace_back(std::array<uint8_t,8>{1,2,3,4,5,6,7,8});
+    label.emplace_back(std::array<uint8_t,8>{2,2,3,4,5,6,7,8});
+    label.emplace_back(std::array<uint8_t,8>{3,2,3,4,5,6,7,8});
+
     PSI::Server::PSIServer server(1);
     server.init(items,label);
 
@@ -18,10 +22,11 @@ void test_cuckoo(){
     items.emplace_back(0x125,0x458);
     items.emplace_back(0x128,0x459);
 
-    std::vector<PSI::Label> label;
-    label.emplace_back((0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8));
-    label.emplace_back((0x2,0x2,0x3,0x4,0x5,0x6,0x7,0x8));
-    label.emplace_back((0x3,0x2,0x3,0x4,0x5,0x6,0x7,0x8));
+    std::vector<PSI::Label> label(3);
+    label[0] = std::string("0012345");
+    label[1] = std::string("1012345");
+    label[2] = std::string("2012345");
+
     PSI::Server::PSIServer server(3);
     PSI::Client::PSIClient client(3);
 
@@ -40,9 +45,9 @@ void test_DPF(){
     items.emplace_back(0x128,0x459);
 
     std::vector<PSI::Label> label(3);
-    label[0].assign(8,'0');
-    label[1].assign(8,'1');
-    label[2].assign(8,'2');
+    label[0] = std::string("0012345");
+    label[1] = std::string("1012345");
+    label[2] = std::string("2012345");
 
     PSI::Server::PSIServer server(3);
     PSI::Client::PSIClient client(3);
@@ -60,10 +65,8 @@ void test_DPF(){
     auto ks = client.getKs();
     auto ka = client.getKa();
 
-    auto response_s = server.DPFShare(ks);
-    auto response_a = server.DPFShare(ka);
 
-    client.DictGen(response_s,response_a);
+    // client.DictGen(response_s,response_a);
     client.InsectionCheck(value,items);
 }
 
@@ -91,8 +94,7 @@ void test_unbanlanced(){
     auto receiver_size = ReceiverSet.size();
     std::vector<PSI::Label> label(sender_size);
     for(size_t idx = 0 ; idx < sender_size ; idx ++){
-        label[idx].assign(8,1);
-        label[idx][7] += (uint8_t)idx;
+        label[idx] = std::string("00000");
     }
 
     PSI::Server::PSIServer server(sender_size);
@@ -112,10 +114,16 @@ void test_unbanlanced(){
     auto ka = client.getKa();
 
     auto response_s = server.DPFShare(ks);
-    auto response_a = server.DPFShare(ka);
+    auto response_a = aidserver.DPFShare(ka,hash_table);
 
     client.DictGen(response_s,response_a);
     client.InsectionCheck(value,ReceiverSet);
 
 
+}
+void testXor(){
+    PSI::LabelMask a{std::array<uint8_t,16>{1,2,3,4,5,6,7,8}};
+    PSI::LabelMask b{std::array<uint8_t,16>{0}};
+    b = PSI::xor_LabelMask(a,b);
+    PSI::util::printchar(a.value().data(),16);
 }

@@ -6,10 +6,10 @@ namespace PSI
     constexpr size_t Label_bit_size = 64;
     constexpr size_t Label_byte_size = 8;
 
-    constexpr size_t leading_zero_length =  8 ;
+    constexpr size_t Leading_zero_length =  8 ;
+    constexpr size_t Item_byte_size = 16;
 
-    using Label = std::vector<uint8_t>;
-
+    constexpr uint8_t ZeroMask[Leading_zero_length] = {0};
     #define LogLevel 1
 
 } // namespace PSI

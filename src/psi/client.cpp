@@ -79,15 +79,17 @@ namespace PSI
             size_t block_size_before_padding = IndexSets_by_block.at(block_id).size();
             for(size_t index_id = 0; index_id < block_size_before_padding ; index_id++){
                 size_t index = Indexset[index_id];
-                auto& DPFValueListS =  DPFResponseS.DPFValue[index_id];
-                auto& DPFValueListA =  DPFResponseA.DPFValue[index_id];
-                auto DPFValue = DPFServer.reconstruct(DPFValueListA[index],DPFValueListS[index]);
-                if((DPFValue&1)){
-                    Dict.insert(std::make_pair(cuckoo::get_BinID(index,block_id),DPFResponseS.cuckoo_table.at(index)));
+                auto& LabelMaskS =  DPFResponseS[index_id];
+                auto& LabelMaskA =  DPFResponseA[index_id];
+                // if((DPFValue&1)){
+                //     Dict.insert(std::make_pair(cuckoo::get_BinID(index,block_id),DPFResponseS.cuckoo_table.at(index)));
 
-                    printf("block_id %d KeyID %d ValueID %d : %02x \n",block_id,index_id,index,DPFValue);
+                //     printf("block_id %d KeyID %d ValueID %d : %02x \n",block_id,index_id,index,DPFValue);
 
-                }  
+                // }  
+                Dict[cuckoo::get_BinID(index,block_id)] = 
+                            xor_LabelMask(LabelMaskS,LabelMaskA);
+
             }
         }
 
@@ -95,28 +97,34 @@ namespace PSI
     void PSIClient::InsectionCheck(const std::vector<std::string>& oprf_input,const std::vector<Item>& input){
         std::vector<kuku::LocFunc> hash_funcs;
         std::string zero_mask;
-        zero_mask.assign(leading_zero_length,'\0');
+        zero_mask.assign(Leading_zero_length,'\0');
         for (uint32_t i = 0; i < cuckoo::hash_func_count; i++) {
             hash_funcs.emplace_back(cuckoo::table_size, kuku::make_item(i, 0));
         }
-        std::vector<std::pair<Item,std::string>> Ins;
+        std::vector<std::pair<Item,PSI::Label>> Ins;
         for(size_t idx = 0; idx < oprf_input.size(); idx++){
             auto &x = oprf_input[idx];
 
-            auto random_mask = x.substr(16,leading_zero_length+Label_byte_size);
+            auto random_mask = x.substr(16,Leading_zero_length+Label_byte_size);
             for (auto &hf : hash_funcs) {
                 auto binID = hf(kuku::make_item((uint8_t*)x.substr(0,16).data()));
                 auto search = Dict.find(binID);
                 if(search != Dict.end()){
-                    std::string ans = search->second;
+                    auto AnsMask = search->second;
+#if LogLevel == 0
                     // std::cout << (ans == search->second) << std::endl;
                     // util::printchar((uint8_t*)ans.data(),ans.size());
                     // util::printchar((uint8_t*)search->second.data(),search->second.size());
                     // util::printchar((uint8_t*)random_mask.data(),random_mask.size());
-                    util::xor_buffers((uint8_t*)ans.data(),(uint8_t*)random_mask.data(),leading_zero_length+Label_byte_size);
-                    util::printchar((uint8_t*)ans.data(),ans.size());
-                    if(zero_mask == ans.substr(0,leading_zero_length)){
-                        Ins.emplace_back(input.at(idx),ans.substr(leading_zero_length,Label_byte_size));
+#endif
+                 
+                    auto XorLabelMask = xor_LabelMask(AnsMask,random_mask);
+#if LogLevel <= 1
+                    util::printchar((uint8_t*)XorLabelMask.value().data(),XorLabelMask.value().size());
+#endif
+                    
+                    if(0 == memcmp(XorLabelMask.value().data(),ZeroMask,Leading_zero_length)){
+                        Ins.emplace_back(input.at(idx),toLabel(XorLabelMask));// 暂时
                         break;
                     } 
                 }
@@ -126,7 +134,7 @@ namespace PSI
             printf("item:\n");
             util::printchar(x.first.get_as<uint8_t>().data(),x.first.get_as<uint8_t>().size());
             printf("label:\n");
-            util::printchar(x.second.data(),x.second.size());
+            util::printchar(x.second.get_as<uint8_t>().data(),x.second.get_as<uint8_t>().size());
         }
 
     }

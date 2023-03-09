@@ -17,16 +17,16 @@ void test_aes(){
 
 void test_dpf(){
     PSI::DPF::dpf_server test;
-    PSI::DPF::dpf_client test0;
-    PSI::DPF::dpf_client test1;
+    PSI::DPF::dpf_client test0(0);
+    PSI::DPF::dpf_client test1(1);
 
     test.init();
     PSI::DPF::DPFKey t1,t2;
     test.Gen(15,1,t1,t2);
 
     
-    auto x1 = test0.Eval(14,0,t1);
-    auto x2 = test1.Eval(14,1,t2);
+    auto x1 = test0.Eval(14,t1);
+    auto x2 = test1.Eval(14,t2);
     auto ans = test.reconstruct(x1,x2);
     printf("%02x\n",x1);
     printf("%02x\n",x2);

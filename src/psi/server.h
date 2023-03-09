@@ -14,12 +14,14 @@ namespace PSI
         class PSIServer{
         public:
             PSIServer() = default;
-            PSIServer(size_t server_set_size):server_set_size_(server_set_size){};
-            std::vector<std::string> init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
+            PSIServer(size_t server_set_size):server_set_size_(server_set_size),DPFClient(0){
+                
+            };
+            std::vector<LabelMask> init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
             std::vector<std::string> process_query(const std::vector<std::string>& input);
-            DPF::DPFResponseList DPFShare(DPF::DPFKeyList);
+            DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist);
         private:
-            std::vector<std::string> hash_table;
+            std::vector<LabelMask> hash_table;
 
             size_t server_set_size_;
             OPRF::OPRFSender DHOPRFSender;

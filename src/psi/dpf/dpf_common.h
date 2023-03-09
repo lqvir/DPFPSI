@@ -16,10 +16,9 @@ namespace PSI
         constexpr size_t Lambda = 128 ;
         constexpr size_t Lambda_bytes = 16;
 
-        struct DPFResponse{
-            std::array<std::array<uint8_t,cuckoo::block_size>,cuckoo::max_set_size> DPFValue;
-            std::vector<std::string> cuckoo_table;
-        };
+       
+        using DPFResponse = std::array<LabelMask,cuckoo::max_set_size>;
+        
         struct DPFKey
         {
             /* data */

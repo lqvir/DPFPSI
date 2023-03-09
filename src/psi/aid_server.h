@@ -6,15 +6,15 @@ namespace PSI{
     {
         class AidServer{
         public:
-            AidServer() = default;
-            void init(const std::vector<std::string>& hash_table_input);
-            DPF::DPFResponseList DPFShare(DPF::DPFKeyList dpfkeylist);
+            AidServer():DPFClient(0){};
+            void init(const std::vector<LabelMask>& hash_table_input);
+            DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist,const std::vector<LabelMask>& hash_table_input);
+            
         private:
 
-            std::vector<std::string> hash_table;
+            std::vector<LabelMask> hash_table;
             size_t server_set_size_;
             DPF::dpf_client DPFClient;
-
         };
     } // namespace AidServer
     

@@ -13,7 +13,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
+#include <span>
 #include "gsl/span"
 #include "openssl/evp.h"
 namespace PSI{
@@ -22,7 +22,7 @@ namespace PSI{
         Writes a vector into an std::ostream as [a, b, c, ..., z].
         */
         template <typename T, std::size_t Extent, typename ToString>
-        std::string to_string(gsl::span<T, Extent> values, ToString to_string_fun)
+        std::string to_string(std::span<T, Extent> values, ToString to_string_fun)
         {
             if (values.empty()) {
                 return "[ ]";
@@ -42,7 +42,7 @@ namespace PSI{
         Writes a vector into an std::ostream as [a, b, c, ..., z].
         */
         template <typename T, std::size_t Extent>
-        std::string to_string(gsl::span<T, Extent> values)
+        std::string to_string(std::span<T, Extent> values)
         {
             return to_string(values, [](T &t) -> T & { return t; });
         }
@@ -62,7 +62,7 @@ namespace PSI{
         template <typename T>
         std::string to_string(const std::vector<T> &values)
         {
-            return to_string(gsl::span<const T>(values));
+            return to_string(std::span<const T>(values));
         }
 
         /**

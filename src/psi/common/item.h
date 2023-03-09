@@ -2,58 +2,56 @@
 
 #include <iostream>
 #include <immintrin.h>
-#include "gsl/span"
+#include <span>
 #include "psi/common/utils.h"
+#include "psi/param.h"
 namespace PSI{
-class Item {
+
+
+
+
+template<typename value_type>
+class ItemTmpl {
     public:
-        using value_type = std::array<unsigned char, 16>;
+        
 
         /**
         Constructs a zero item.
         */
-        Item() = default;
+        ItemTmpl() = default;
 
-        Item(const value_type &value) : value_(value)
+        ItemTmpl(const value_type &value) : value_(value)
         {}
 
-        // /**
-        // Constructs an Item from a BitstringView. This throws std::invalid_argument if the bitstring
-        // doesn't fit into std::array<unsigned char, 16>.
-        // */
-        // template <typename T>
-        // Item(const BitstringView<T> &bitstring)
-        // {
-        //     auto bitstring_bytes = bitstring.data();
-        //     if (bitstring_bytes.size() > sizeof(value_)) {
-        //         throw std::invalid_argument("bitstring is too long to fit into an Item");
-        //     }
+        ItemTmpl(const ItemTmpl &) = default;
 
-        //     std::copy(bitstring_bytes.begin(), bitstring_bytes.end(), value_.begin());
-        // }
+        ItemTmpl(ItemTmpl &&) = default;
 
-        Item(const Item &) = default;
+        ItemTmpl &operator=(const ItemTmpl &item) = default;
 
-        Item(Item &&) = default;
-
-        Item &operator=(const Item &item) = default;
-
-        Item &operator=(Item &&item) = default;
+        ItemTmpl &operator=(ItemTmpl &&item) = default;
 
         /**
-        Constructs an Item by hashing a given string of arbitrary length.
+        Constructs an ItemTmpl by hashing a given string of arbitrary length.
         */
         template <typename CharT>
-        Item(const std::basic_string<CharT> &str)
+        ItemTmpl(const std::basic_string<CharT> &str)
         {
             operator=<CharT>(str);
         }
-
+        template <typename CharT>
+        ItemTmpl(const std::span<CharT> &str)
+        {
+            if (str.empty()) {
+                throw std::invalid_argument("str cannot be empty");
+            }
+            util::copy_bytes(str.data(),str.size()*sizeof(CharT),value_.data());
+        }
         /**
-        Hash a given string of arbitrary length into an Item.
+        Hash a given string of arbitrary length into an ItemTmpl.
         */
         template <typename CharT>
-        Item &operator=(const std::basic_string<CharT> &str)
+        ItemTmpl &operator=(const std::basic_string<CharT> &str)
         {
             if (str.empty()) {
                 throw std::invalid_argument("str cannot be empty");
@@ -64,11 +62,11 @@ class Item {
         }
 
         // /**
-        // Returns the Bitstring representing this Item's data.
+        // Returns the Bitstring representing this ItemTmpl's data.
         // */
         // Bitstring to_bitstring(std::uint32_t item_bit_count) const;
 
-        bool operator==(const Item &other) const
+        bool operator==(const ItemTmpl &other) const
         {
             return value_ == other.value_;
         }
@@ -80,7 +78,7 @@ class Item {
         auto get_as() const
         {
             constexpr std::size_t count = sizeof(value_) / sizeof(T);
-            return gsl::span<std::add_const_t<T>, count>(
+            return std::span<std::add_const_t<T>, count>(
                 reinterpret_cast<std::add_const_t<T> *>(value_.data()), count);
         }
 
@@ -91,12 +89,13 @@ class Item {
         auto get_as()
         {
             constexpr std::size_t count = sizeof(value_) / sizeof(T);
-            return gsl::span<T, count>(reinterpret_cast<T *>(value_.data()), count);
+            return std::span<T, count>(reinterpret_cast<T *>(value_.data()), count);
         }
 
-        Item(std::uint64_t lw, std::uint64_t hw)
+        // only for std::array<uint8_t,2>
+        ItemTmpl(std::uint64_t lw, std::uint64_t hw)
         {
-            auto words = get_as<std::uint64_t>();
+            auto words = get_as<uint64_t>();
             words[0] = lw;
             words[1] = hw;
         }
@@ -110,7 +109,6 @@ class Item {
         {
             return value_;
         }
-
         std::string to_string() const;
 
     private:
@@ -119,4 +117,11 @@ class Item {
         value_type value_{};
     }; // class Item
 
-}
+    using Item = ItemTmpl<std::array<uint8_t,Item_byte_size>>;
+    using Label = ItemTmpl<std::array<uint8_t,Label_byte_size>>;
+    using LabelMask = ItemTmpl<std::array<uint8_t,Label_byte_size+Leading_zero_length>>;
+
+
+    LabelMask xor_LabelMask(const LabelMask& buf1,const LabelMask& buf2);
+    Label toLabel(const LabelMask& buf);
+} // namespace PSI

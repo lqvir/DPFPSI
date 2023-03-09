@@ -4,9 +4,9 @@
 #include "test_server.hpp"
 #include "test_stopwatch.hpp"
 int main(){
-    PSI::ThreadPoolMgr::SetThreadCount(4);
+    PSI::ThreadPoolMgr::SetThreadCount(1);
 
-    test_stopwatch();
+    test_unbanlanced();
 
     std::cout<<"hello"<<std::endl;
     return 0;
