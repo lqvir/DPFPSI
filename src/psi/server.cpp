@@ -93,7 +93,9 @@ namespace PSI
         DPF::DPFResponseList PSIServer::DPFShareFullEval(const DPF::DPFKeyList& keylist){
             return DPFClient.FullEval(keylist,hash_table);
         }
-
+        DPF::DPFResponseList PSIServer::DPFShareFullEval(const DPF::DPFKeyEarlyTerminalList& keylist){
+            return DPFClient.FullEval(keylist,hash_table);
+        }
     } // namespace Server
     
 } // namespace PSI

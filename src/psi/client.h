@@ -21,14 +21,14 @@ namespace PSI{
                 std::vector<std::string> OPRFResponse(const std::vector<std::string>& response);
                 void Cuckoo_All_location(const std::vector<std::string>& oprf_input);
                 void DPFGen(
-                    // KeyList& Ks,KeyList& Ka
+                    DPF::DPFKeyList& Ks,DPF::DPFKeyList& Ka
                 );
-                DPF::DPFKeyList getKs(){
-                    return Ks;
-                }
-                DPF::DPFKeyList getKa(){
-                    return Ka;
-                }
+                void DPFGen(
+                    DPF::DPFKeyEarlyTerminalList& Ks,
+                    DPF::DPFKeyEarlyTerminalList& Ka
+                );
+
+
 
                 void DictGen(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA);
 
@@ -38,7 +38,6 @@ namespace PSI{
                 size_t client_set_size_;
                 std::vector<std::vector<size_t>> IndexSets_by_block; 
                 DPF::dpf_server DPFServer;
-                DPF::DPFKeyList Ks,Ka;
                 std::unordered_map<size_t,LabelMask> Dict;
         };
 

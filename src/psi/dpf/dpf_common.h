@@ -16,6 +16,11 @@ namespace PSI
         constexpr size_t Lambda = 128 ;
         constexpr size_t Lambda_bytes = 16;
 
+        // DPF_EARLY_BIT_SIZE = min(DPF_INPUT_BIT_SIZE - ceil(lambda/log2(2)),DPF_INPUT_BIT_SIZE)
+        constexpr size_t DPF_EARLY_BIT_SIZE = 6;
+        constexpr size_t DPF_EAYLY_HIGH = DPF_INPUT_BIT_SIZE - DPF_EARLY_BIT_SIZE;
+        // 2 ^ (DPF_INPUT_BIT_SIZE - DPF_EARLY_BIT_SIZE)
+        constexpr size_t DPF_COMPRESS_NODES_NUMBER = 64;
        
         using DPFResponse = std::array<LabelMask,cuckoo::max_set_size>;
         
@@ -26,13 +31,16 @@ namespace PSI
             std::array<std::bitset<Lambda>,DPF_INPUT_BIT_SIZE - 1> cw;
             std::bitset<Lambda+1> cw_n;
             uint8_t cw_n_plus_1;
-
+            DPFKey(){
+                this->share = 0;
+                for(auto x : cw){
+                    x = 0;
+                }
+                cw_n = 0;
+                cw_n_plus_1 = 0;
+            }
             inline void RandomKey();
         };
-
-        typedef  std::array<std::array<DPF::DPFKey,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyList; 
-        typedef std::array<DPFResponse ,cuckoo::block_num> DPFResponseList;
-        typedef std::array<uint8_t,((size_t)1<<DPF_INPUT_BIT_SIZE)> pcGGMLeafList;
 
         inline void DPFKey::RandomKey(){
             const size_t all_len = Lambda_bytes*(DPF_INPUT_BIT_SIZE+1)+2;
@@ -49,6 +57,51 @@ namespace PSI
             ss >> cw_n;
             this->cw_n_plus_1 = buffer[all_len-1];
         }
+        
+        typedef  std::array<std::array<DPF::DPFKey,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyList; 
+        typedef std::array<DPFResponse ,cuckoo::block_num> DPFResponseList;
+        // typedef std::array<uint8_t,((size_t)1<<DPF_INPUT_BIT_SIZE)> pcGGMLeafList;
+
+       
+        struct DPFKeyEarlyTerminal
+        {
+            /* data */
+            std::bitset<Lambda>  share;
+            std::array<std::bitset<Lambda>,DPF_EAYLY_HIGH - 1> cw;
+            std::bitset<Lambda+1> cw_n;
+            std::bitset<DPF_COMPRESS_NODES_NUMBER> cw_n_1;
+            DPFKeyEarlyTerminal(){
+                share = 0;
+                for(auto x : cw){
+                    x = 0;
+                }
+                cw_n = 0;
+                cw_n_1 = 0;
+            }
+            inline void RandomKey();
+        };
+
+        inline void DPFKeyEarlyTerminal::RandomKey(){
+            const size_t all_len = Lambda_bytes*(DPF_EARLY_BIT_SIZE+2)+2;
+            uint8_t buffer[all_len];
+            RAND_bytes(buffer,all_len);
+            std::stringstream ss;
+            for(auto x : buffer){
+                ss << std::bitset<8>(x);
+            }
+            ss >> this->share;
+            for(size_t idx = 0; idx < DPF_EAYLY_HIGH - 1; idx++){
+                ss >> this->cw.at(idx);
+            }
+            ss >> cw_n;
+            ss >> cw_n_1;
+        }
+
+
+        typedef  std::array<std::array<DPF::DPFKeyEarlyTerminal,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyEarlyTerminalList; 
+
+        typedef std::bitset<((size_t)1 << DPF_INPUT_BIT_SIZE)> pcGGMLeafList;
+
 
         inline void sigma(uint8_t* input){
             uint64_t* in_u64 =(uint64_t*) input;
@@ -128,13 +181,18 @@ namespace PSI
 
 
         inline void Convert_to_G(const std::bitset<Lambda>& in,uint8_t& out){
-            if(in[2] == 1){
+            if(in[1] == 1){
                 out = 1;
             }
             else{
                 out = 0;
             }
+        }
 
+        inline void Convert_to_G(const std::bitset<Lambda>&in, std::bitset<DPF_COMPRESS_NODES_NUMBER>& out){
+            // std::cout << in.to_string() << std::endl;
+            out =std::bitset<DPF_COMPRESS_NODES_NUMBER>(in.to_string().substr(Lambda-DPF_COMPRESS_NODES_NUMBER-1,DPF_COMPRESS_NODES_NUMBER));
+            // std::cout << out.to_string() << std::endl;
         }
     } // namespace DPF
     

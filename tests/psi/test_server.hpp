@@ -60,10 +60,8 @@ void test_DPF(){
     auto value = client.OPRFResponse(response);
     client.Cuckoo_All_location(value);
     aidserver.init(hash_table);
-    client.DPFGen();
-
-    auto ks = client.getKs();
-    auto ka = client.getKa();
+    PSI::DPF::DPFKeyList ks,ka;
+    client.DPFGen(ks,ka);
 
 
     // client.DictGen(response_s,response_a);
@@ -108,10 +106,8 @@ void test_unbanlanced(){
     auto value = client.OPRFResponse(response);
     client.Cuckoo_All_location(value);
     aidserver.init(hash_table);
-    client.DPFGen();
-
-    auto ks = client.getKs();
-    auto ka = client.getKa();
+    PSI::DPF::DPFKeyList ks,ka;
+    client.DPFGen(ks,ka);
 
     auto response_s = server.DPFShare(ks);
     auto response_a = aidserver.DPFShare(ka,hash_table);
@@ -165,10 +161,8 @@ void test_FUllEval(){
     auto value = client.OPRFResponse(response);
     client.Cuckoo_All_location(value);
     aidserver.init(hash_table);
-    client.DPFGen();
-
-    auto ks = client.getKs();
-    auto ka = client.getKa();
+    PSI::DPF::DPFKeyList ks,ka;
+    client.DPFGen(ks,ka);
 
     auto response_s = server.DPFShare(ks);
     auto response_a = aidserver.DPFShare(ka,hash_table);
@@ -191,12 +185,12 @@ void test_unbanlancedFullEval(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    for(size_t idx = 101; idx < 101+4 ; idx ++){
+    for(size_t idx = 0; idx < 16 ; idx ++){
         ReceiverSet.emplace_back(0x123+idx,0x456*idx);
         ServerSet.emplace_back(0x123+idx,0x456*idx);   
     }
     
-    for(size_t idx = 233; idx < 245 ; idx ++){
+    for(size_t idx = 0; idx < 48 ; idx ++){
         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
     }
 
@@ -209,8 +203,11 @@ void test_unbanlancedFullEval(){
     auto sender_size = ServerSet.size();
     auto receiver_size = ReceiverSet.size();
     std::vector<PSI::Label> label(sender_size);
+    std::string label_m("00000");
     for(size_t idx = 0 ; idx < sender_size ; idx ++){
-        label[idx] = std::string("00000");
+        label[idx] = label_m;
+        label_m[0] += 1;
+        
     }
 
     PSI::Server::PSIServer server(sender_size);
@@ -224,10 +221,9 @@ void test_unbanlancedFullEval(){
     auto value = client.OPRFResponse(response);
     client.Cuckoo_All_location(value);
     aidserver.init(hash_table);
-    client.DPFGen();
+    PSI::DPF::DPFKeyList ks,ka;
+    client.DPFGen(ks,ka);
 
-    auto ks = client.getKs();
-    auto ka = client.getKa();
 
     auto response_s = server.DPFShareFullEval(ks);
     auto response_a = aidserver.DPFShareFullEval(ka,hash_table);
@@ -236,4 +232,55 @@ void test_unbanlancedFullEval(){
     client.InsectionCheck(value,ReceiverSet);
 
 
+}
+
+void test_early_terminal(){
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    for(size_t idx = 0; idx < 16 ; idx ++){
+        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
+        ServerSet.emplace_back(0x123+idx,0x456*idx);   
+    }
+    
+    for(size_t idx = 0; idx < 48 ; idx ++){
+        ServerSet.emplace_back(0x789+idx,0xABC*idx);   
+    }
+
+    // for(auto x:ServerSet){
+    //     PSI::util::printchar(x.get_as<uint8_t>().data(),16);
+    // }
+    // for(auto x:ReceiverSet){
+    //     PSI::util::printchar(x.get_as<uint8_t>().data(),16);
+    // }
+    auto sender_size = ServerSet.size();
+    auto receiver_size = ReceiverSet.size();
+    std::vector<PSI::Label> label(sender_size);
+    std::string label_m("00000");
+    for(size_t idx = 0 ; idx < sender_size ; idx ++){
+        label[idx] = label_m;
+        label_m[0] += 1;
+        
+    }
+
+    PSI::Server::PSIServer server(sender_size);
+    PSI::Client::PSIClient client(receiver_size);
+    PSI::AidServer::AidServer aidserver;
+    auto hash_table = server.init(ServerSet,label);
+
+    auto query = client.OPRFQuery(ReceiverSet);
+    auto response = server.process_query(query);
+    auto value = client.OPRFResponse(response);
+
+    client.Cuckoo_All_location(value);
+    aidserver.init(hash_table);
+    PSI::DPF::DPFKeyEarlyTerminalList ks,ka;
+    std::cout << __LINE__ << std::endl;
+
+    client.DPFGen(ks,ka);
+    auto response_s = server.DPFShareFullEval(ks);
+    auto response_a = aidserver.DPFShareFullEval(ka,hash_table);
+
+    client.DictGen(response_s,response_a);
+    client.InsectionCheck(value,ReceiverSet);
 }

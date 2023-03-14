@@ -5,9 +5,14 @@
 #include "test_stopwatch.hpp"
 int main(){
     PSI::ThreadPoolMgr::SetThreadCount(1);
+    PSI::StopWatch clock1;
+    clock1.setpoint("start");
+    test_early_terminal();
+    clock1.setpoint("finish early terminal");
+    // test_unbanlancedFullEval();
+    // clock1.setpoint("finish without early terminal");
 
-    test_unbanlancedFullEval();
-    test_unbanlanced();
     std::cout<<"hello"<<std::endl;
+    // clock1.printTimePointRecord();
     return 0;
 }

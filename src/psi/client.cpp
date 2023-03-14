@@ -28,30 +28,30 @@ namespace PSI
                     IndexSets.emplace(hf(kuku::make_item((uint8_t*)x.substr(0,16).data())));
                 }
             }
+            std::cout << __LINE__ << std::endl;
                 for(auto it = IndexSets.begin(); it != IndexSets.end(); it++){
                     std::cout << *it << std::endl;
                 }
             IndexSets_by_block.resize(cuckoo::block_num);
             for(auto it = IndexSets.begin();it!=IndexSets.end();it++){
                 IndexSets_by_block.at(cuckoo::get_block_id(*it)).emplace_back(cuckoo::get_pos(*it));
-                
             }
             for(auto &Indexset: IndexSets_by_block){
                 if(Indexset.size()>= cuckoo::max_set_size){
                     throw std::runtime_error("The number of elements in the set exceeds the maximum value.");
                 }
-                std::cout << std::endl;
+                // std::cout << std::endl;
 
-                for(auto x : Indexset){
-                    std::cout << x << std::endl;
-                }
-                std::cout << std::endl;
+                // for(auto x : Indexset){
+                //     std::cout << x << std::endl;
+                // }
+                // std::cout << std::endl;
             }
 
 
         }
         
-    void PSIClient::DPFGen(){
+    void PSIClient::DPFGen(DPF::DPFKeyList& Ks,DPF::DPFKeyList& Ka){
         DPFServer.init();
 
         for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
@@ -66,8 +66,25 @@ namespace PSI
             }
         }
     }
+    void PSIClient::DPFGen(
+                    DPF::DPFKeyEarlyTerminalList& Ks,
+                    DPF::DPFKeyEarlyTerminalList& Ka)
+    {
+        DPFServer.init();
 
+        for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
+            auto block_size = IndexSets_by_block.at(block_id).size();
+            for(size_t pos_id = 0; pos_id < block_size; pos_id++){
+           
+                DPFServer.Gen(IndexSets_by_block.at(block_id).at(pos_id),1,Ks.at(block_id).at(pos_id),Ka.at(block_id).at(pos_id));
+            }
+            for(size_t pad_idx = block_size ;pad_idx < cuckoo::max_set_size; pad_idx++){
+                Ka.at(block_id).at(pad_idx).RandomKey();
+                Ks.at(block_id).at(pad_idx).RandomKey();
+            }
+        }
     
+    }
 
     void PSIClient::DictGen(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA){
         
@@ -136,6 +153,7 @@ namespace PSI
             printf("label:\n");
             util::printchar(x.second.get_as<uint8_t>().data(),x.second.get_as<uint8_t>().size());
         }
+        std::cout << "Insection Size" << Ins.size() << std::endl;
 
     }
     
