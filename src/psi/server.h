@@ -21,7 +21,7 @@ namespace PSI
             std::vector<std::string> process_query(const std::vector<std::string>& input);
             DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist);
             DPF::DPFResponseList DPFShareFullEval(const DPF::DPFKeyList& keylist);
-            DPF::DPFResponseList DPFShareFullEval(const DPF::DPFKeyEarlyTerminalList& keylist);
+            DPF::DPFResponseList DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist);
 
         private:
             std::vector<LabelMask> hash_table;

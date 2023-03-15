@@ -24,13 +24,16 @@ namespace PSI{
                     DPF::DPFKeyList& Ks,DPF::DPFKeyList& Ka
                 );
                 void DPFGen(
-                    DPF::DPFKeyEarlyTerminalList& Ks,
-                    DPF::DPFKeyEarlyTerminalList& Ka
+                    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ks,
+                    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ka
                 );
 
 
 
-                void DictGen(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA);
+                void DictGen(
+                    std::shared_ptr<DPF::DPFResponseList> ResponseListFromS,
+                    std::shared_ptr<DPF::DPFResponseList> ResponseListFromA
+                );
 
                 void InsectionCheck(const std::vector<std::string>& oprf_input,const std::vector<Item>& input);
             private:

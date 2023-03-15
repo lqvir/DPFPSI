@@ -10,6 +10,8 @@ namespace PSI
         std::vector<LabelMask> PSIServer::init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
             DHOPRFSender.init();
             auto output = DHOPRFSender.ComputeHashes(input);
+            std::cout << __LINE__ << std::endl;
+            
 #if  LogLevel == 0
 
 
@@ -93,7 +95,7 @@ namespace PSI
         DPF::DPFResponseList PSIServer::DPFShareFullEval(const DPF::DPFKeyList& keylist){
             return DPFClient.FullEval(keylist,hash_table);
         }
-        DPF::DPFResponseList PSIServer::DPFShareFullEval(const DPF::DPFKeyEarlyTerminalList& keylist){
+        DPF::DPFResponseList PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist){
             return DPFClient.FullEval(keylist,hash_table);
         }
     } // namespace Server

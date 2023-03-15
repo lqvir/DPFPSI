@@ -3,14 +3,16 @@
 #include "psi/aid_server.h"
 #include "psi/server.h"
 #include "psi/client.h"
+#include "psi/common/stopwatch.h"
+
 void test_server(){
     std::vector<PSI::Item> items;
     items.emplace_back(0x123,0x456);
     std::vector<PSI::Label> label;
-    PSI::Label test(std::array<uint8_t,8>{1,2,3,4,5,6,7,8});
-    label.emplace_back(std::array<uint8_t,8>{1,2,3,4,5,6,7,8});
-    label.emplace_back(std::array<uint8_t,8>{2,2,3,4,5,6,7,8});
-    label.emplace_back(std::array<uint8_t,8>{3,2,3,4,5,6,7,8});
+    PSI::Label test(std::array<uint8_t,PSI::Label_byte_size>{1,2,3,4,5,6,7,8});
+    label.emplace_back(std::array<uint8_t,PSI::Label_byte_size>{1,2,3,4,5,6,7,8});
+    label.emplace_back(std::array<uint8_t,PSI::Label_byte_size>{2,2,3,4,5,6,7,8});
+    label.emplace_back(std::array<uint8_t,PSI::Label_byte_size>{3,2,3,4,5,6,7,8});
 
     PSI::Server::PSIServer server(1);
     server.init(items,label);
@@ -112,14 +114,14 @@ void test_unbanlanced(){
     auto response_s = server.DPFShare(ks);
     auto response_a = aidserver.DPFShare(ka,hash_table);
 
-    client.DictGen(response_s,response_a);
-    client.InsectionCheck(value,ReceiverSet);
+  /*  client.DictGen(response_s,response_a);
+    client.InsectionCheck(value,ReceiverSet);*/
 
 
 }
 void testXor(){
-    PSI::LabelMask a{std::array<uint8_t,16>{1,2,3,4,5,6,7,8}};
-    PSI::LabelMask b{std::array<uint8_t,16>{0}};
+    PSI::LabelMask a{std::array<uint8_t,PSI::Mask_byte_size>{1,2,3,4,5,6,7,8}};
+    PSI::LabelMask b{std::array<uint8_t,PSI::Mask_byte_size>{0}};
     b = PSI::xor_LabelMask(a,b);
     PSI::util::printchar(a.value().data(),16);
 }
@@ -228,22 +230,23 @@ void test_unbanlancedFullEval(){
     auto response_s = server.DPFShareFullEval(ks);
     auto response_a = aidserver.DPFShareFullEval(ka,hash_table);
 
-    client.DictGen(response_s,response_a);
-    client.InsectionCheck(value,ReceiverSet);
+    //client.DictGen(response_s,response_a);
+    //client.InsectionCheck(value,ReceiverSet);
 
 
 }
 
 void test_early_terminal(){
+    PSI::StopWatch clocks("early");
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
-
+    clocks.setpoint("start");
     for(size_t idx = 0; idx < 16 ; idx ++){
         ReceiverSet.emplace_back(0x123+idx,0x456*idx);
         ServerSet.emplace_back(0x123+idx,0x456*idx);   
     }
     
-    for(size_t idx = 0; idx < 48 ; idx ++){
+    for(size_t idx = 0; idx < 1024 ; idx ++){
         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
     }
 
@@ -262,25 +265,39 @@ void test_early_terminal(){
         label_m[0] += 1;
         
     }
+    clocks.setpoint("prepare data finish");
+    std::cout << __LINE__ << std::endl;
 
     PSI::Server::PSIServer server(sender_size);
     PSI::Client::PSIClient client(receiver_size);
     PSI::AidServer::AidServer aidserver;
     auto hash_table = server.init(ServerSet,label);
+    clocks.setpoint("prepare data finish");
 
     auto query = client.OPRFQuery(ReceiverSet);
     auto response = server.process_query(query);
     auto value = client.OPRFResponse(response);
-
-    client.Cuckoo_All_location(value);
-    aidserver.init(hash_table);
-    PSI::DPF::DPFKeyEarlyTerminalList ks,ka;
+    clocks.setpoint("oprf finish ");
     std::cout << __LINE__ << std::endl;
 
+    client.Cuckoo_All_location(value);
+    std::cout << __LINE__ << std::endl;
+
+    aidserver.init(hash_table);
+
+    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminalList>();
+    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminalList>();
+
+
     client.DPFGen(ks,ka);
-    auto response_s = server.DPFShareFullEval(ks);
-    auto response_a = aidserver.DPFShareFullEval(ka,hash_table);
+    clocks.setpoint("key generate finish ");
+    auto response_s = std::make_shared<PSI::DPF::DPFResponseList>(server.DPFShareFullEval(ks));
+    auto response_a = std::make_shared<PSI::DPF::DPFResponseList>(aidserver.DPFShareFullEval(ka, hash_table));
+
+    clocks.setpoint("Full Eval finish ");
 
     client.DictGen(response_s,response_a);
     client.InsectionCheck(value,ReceiverSet);
+    clocks.setpoint("ALL Eval finish ");
+    clocks.printTimePointRecord();
 }

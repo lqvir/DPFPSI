@@ -61,12 +61,10 @@ namespace PSI{
             uint8_t md[EVP_MAX_MD_SIZE];
             uint32_t md_size;
             EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-            EVP_Digest(in,inlen,md,&md_size,EVP_sha256(),NULL);
-            if(out_len > md_size){
-                return -1;
-            }
-            // printchar((uint8_t*) md, md_size);
-
+            EVP_Digest(in,inlen,md,&md_size,EVP_blake2b512(),NULL);
+// #if LogLevel == 0
+//             // printchar((uint8_t*) md, md_size);
+// #endif
             memcpy(out,md,out_len);
             EVP_MD_CTX_free(ctx);
             return 0;

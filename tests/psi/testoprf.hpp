@@ -121,12 +121,12 @@ void testOPRF(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    for(size_t idx = 101; idx < 101+4 ; idx ++){
+    for(size_t idx = 0; idx < 16 ; idx ++){
         ReceiverSet.emplace_back(0x123+idx,0x456*idx);
         ServerSet.emplace_back(0x123+idx,0x456*idx);   
     }
     
-    for(size_t idx = 233; idx < 245 ; idx ++){
+    for(size_t idx = 0; idx < 1024 ; idx ++){
         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
     }
     auto value = oprfsender.ComputeHashes(ServerSet);

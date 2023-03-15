@@ -10,8 +10,10 @@ namespace PSI{
             void init(const std::vector<LabelMask>& hash_table_input);
             DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist,const std::vector<LabelMask>& hash_table_input);
             DPF::DPFResponseList DPFShareFullEval(const DPF::DPFKeyList& keylist,const std::vector<LabelMask>& hash_table_input);
-            DPF::DPFResponseList DPFShareFullEval
-                (const DPF::DPFKeyEarlyTerminalList& keylist,const std::vector<LabelMask>& hash_table_input);
+            DPF::DPFResponseList DPFShareFullEval(
+                const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist,
+                const std::vector<LabelMask>& hash_table_input
+                );
 
             
         private:

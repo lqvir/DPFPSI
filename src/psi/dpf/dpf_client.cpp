@@ -319,7 +319,7 @@ namespace PSI
             return dpf_response_list;
 
         }
-        DPFResponseList dpf_client::FullEval(const DPFKeyEarlyTerminalList& dpfkeylist,const std::vector<LabelMask>& hash_table){
+        DPFResponseList dpf_client::FullEval(const std::shared_ptr<DPFKeyEarlyTerminalList> dpfkeylist,const std::vector<LabelMask>& hash_table){
             DPF::DPFResponseList dpf_response_list;
             ThreadPoolMgr tpm;
             size_t task_numbers  = cuckoo::block_num*cuckoo::max_set_size;
@@ -330,7 +330,7 @@ namespace PSI
                     auto blockid = idx/cuckoo::max_set_size;
                     auto keyid = idx%cuckoo::max_set_size;
                     auto &value =   dpf_response_list.at(blockid).at(keyid); 
-                    const auto& key = dpfkeylist.at(blockid).at(keyid);
+                    const auto& key = dpfkeylist->at(blockid).at(keyid);
                     auto LeafList = DPFGenTree(key);
                     for(size_t idx = 0; idx < cuckoo::block_size; idx++){
 

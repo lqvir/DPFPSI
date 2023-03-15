@@ -16,7 +16,7 @@ namespace PSI
             DPFResponseList DPFShare(const DPFKeyList& dpfkeylist,const std::vector<LabelMask>& hash_table);
 
             DPFResponseList FullEval(const DPFKeyList& dpfkeylist,const std::vector<LabelMask>& hash_table);
-            DPFResponseList FullEval(const DPFKeyEarlyTerminalList& dpfkeylist,const std::vector<LabelMask>& hash_table);
+            DPFResponseList FullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> dpfkeylist,const std::vector<LabelMask>& hash_table);
             pcGGMLeafList DPFGenTree(const DPFKey& key);
             pcGGMLeafList DPFGenTree(const DPFKeyEarlyTerminal& key);
             

@@ -17,7 +17,7 @@ namespace PSI{
 
             // Prepare OPRF key and ECGROUP
             int init();
-            OPRFValue ComputeItemHash(const Item &item);
+            OPRFValue ComputeItemHash(const Item &item,BN_CTX* ctx = NULL);
             std::vector<OPRFValue> ComputeHashes(const gsl::span<const Item> &oprf_item);
             std::vector<std::string> ProcessQeries(const std::vector<std::string> &quries);
             
@@ -41,7 +41,6 @@ namespace PSI{
             EC_GROUP* curve;
             BIGNUM* oprf_key;
             BN_CTX* ctx_b;
-            BN_CTX* ctx_ecc;
             size_t point_hex_len;
             size_t BN_BYTE_LEN,POINT_BYTE_LEN,POINT_COMPRESSED_BYTE_LEN;
         }; // class OPRFSender

@@ -7,14 +7,13 @@ namespace PSI{
     }
 
     LabelMask xor_LabelMask(const LabelMask& buf1,const LabelMask& buf2){
-        const auto len = Label_byte_size + Leading_zero_length;
         auto buf1_ = buf1.get_as<uint32_t>();
         auto buf2_  = buf2.get_as<uint32_t>();
-        uint32_t res[len>>2];
-        for(size_t idx = 0; idx < (len>>2); idx++){
+        LabelMask Result;
+        const auto &res = Result.get_as<uint32_t>();
+        for(size_t idx = 0; idx < (Mask_byte_size>>2); idx++){
             res[idx] = buf1_[idx]^ buf2_[idx];
         }
-        LabelMask Result(std::span(res,len));
         return Result;
     }
 
