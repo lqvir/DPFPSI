@@ -25,6 +25,7 @@ namespace PSI{
             std::vector<std::string> process_items(std::span<const Item> oprf_items);
             std::vector<std::string> process_items_threads(std::span<const Item> oprf_items);
             std::vector<std::string> process_response(const std::vector<std::string> responses);
+            std::vector<OPRFValue> process_response_threads(const std::vector<std::string> responses);
         private:
             EC_GROUP* curve;
             BN_CTX* ctx_b;

@@ -19,6 +19,10 @@ namespace PSI
             auto output = DHOPRFReceiver.process_response(response);
             return output;
         }
+        std::vector<std::string> PSIClient::OPRFResponseThread(const std::vector<std::string>& response){
+            auto output = DHOPRFReceiver.process_response_threads(response);
+            return output;
+        }
         void PSIClient::Cuckoo_All_location(const std::vector<std::string>& oprf_input){
             std::vector<kuku::LocFunc> hash_funcs;
             for (uint32_t i = 0; i < cuckoo::hash_func_count; i++) {

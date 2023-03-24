@@ -137,8 +137,8 @@ void testOPRF(){
     //     assert(query[idx] == qurie[idx]);
     // }
     
-    auto response = oprfsender.ProcessQeries(query);
-    auto rvalue = oprfreceier.process_response(response);
+    auto response = oprfsender.ProcessQueriesThread(query);
+    auto rvalue = oprfreceier.process_response_threads(response);
     for(auto x:value){
          PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
     }

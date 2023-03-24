@@ -20,6 +20,7 @@ namespace PSI{
                 std::vector<std::string> OPRFQuery(const std::vector<Item>& input);
                 std::vector<std::string> OPRFQueryThread(const std::vector<Item>& input);
                 std::vector<std::string> OPRFResponse(const std::vector<std::string>& response);
+                std::vector<std::string> OPRFResponseThread(const std::vector<std::string>& response);
                 void Cuckoo_All_location(const std::vector<std::string>& oprf_input);
                 void DPFGen(
                     DPF::DPFKeyList& Ks,DPF::DPFKeyList& Ka

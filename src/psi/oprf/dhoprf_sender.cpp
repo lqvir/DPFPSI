@@ -97,12 +97,12 @@ namespace PSI{
             }
             return oprf_hashes;
         }
-        std::vector<std::string> OPRFSender::ProcessQeries(const std::vector<std::string> &quries){
-            auto quries_number = quries.size();
+        std::vector<std::string> OPRFSender::ProcessQueries(const std::vector<std::string> &queries){
+            auto queries_number = queries.size();
             std::vector<std::string> out;
             EC_POINT* temp = EC_POINT_new(curve);
-            for(auto idx = 0 ; idx < quries_number ; idx ++){
-                EC_POINT_oct2point(curve,temp,(uint8_t*)quries.at(idx).data(),POINT_COMPRESSED_BYTE_LEN,ctx_b);
+            for(auto idx = 0 ; idx < queries_number ; idx ++){
+                EC_POINT_oct2point(curve,temp,(uint8_t*)queries.at(idx).data(),POINT_COMPRESSED_BYTE_LEN,ctx_b);
                 EC_POINT_mul(curve,temp,NULL,temp,oprf_key,ctx_b);
 
                 unsigned char* buffer = new unsigned char[POINT_COMPRESSED_BYTE_LEN];
@@ -114,9 +114,46 @@ namespace PSI{
                 // EC_POINT_hex2point(curve,out[idx].data(),selfcheck,ctx_b);
                 // std::cout << EC_POINT_cmp(curve,selfcheck,temp,ctx_b) << std::endl;
             }
+            EC_POINT_free(temp);
+
             return out;
         }
-        
+        std::vector<std::string> OPRFSender::ProcessQueriesThread(const std::vector<std::string> &queries){
+            ThreadPoolMgr tpm;
+            size_t queries_number = queries.size();
+            size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), queries_number);
+            std::vector<std::future<void>> futures(task_count);
+            std::vector<std::string> out(queries_number);
+
+            auto ProcessQueriesLambda = [&](size_t start_idx,size_t step){
+                BN_CTX* ctx = BN_CTX_new();
+                EC_POINT* temp = EC_POINT_new(curve);
+                for(size_t idx = start_idx;idx < queries_number;idx+= step){
+
+                    EC_POINT_oct2point(curve,temp,(uint8_t*)queries.at(idx).data(),POINT_COMPRESSED_BYTE_LEN,ctx);
+                    EC_POINT_mul(curve,temp,NULL,temp,oprf_key,ctx);
+
+                    unsigned char* buffer = new unsigned char[POINT_COMPRESSED_BYTE_LEN];
+                    auto len = EC_POINT_point2oct(curve,temp,POINT_CONVERSION_COMPRESSED,buffer,POINT_COMPRESSED_BYTE_LEN,ctx);
+                    // std::cout<<len<<std::endl;
+                    out[idx] = std::string(buffer,buffer+POINT_COMPRESSED_BYTE_LEN);
+                }
+
+                EC_POINT_free(temp);
+                BN_CTX_free(ctx);
+            };
+
+            for (size_t thread_idx = 0; thread_idx < task_count; thread_idx++) {
+                futures[thread_idx] =
+                    tpm.thread_pool().enqueue(ProcessQueriesLambda, thread_idx, task_count);
+            }
+
+            for (auto &f : futures) {
+                f.get();
+            }
+
+            return out;
+        }
   
 
     } // namespace dhoprf

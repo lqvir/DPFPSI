@@ -19,6 +19,7 @@ namespace PSI
             };
             std::vector<LabelMask> init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
             std::vector<std::string> process_query(const std::vector<std::string>& input);
+            std::vector<std::string> process_query_thread(const std::vector<std::string>& input);
             DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist);
             std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(const DPF::DPFKeyList& keylist);
             std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist);

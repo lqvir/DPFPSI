@@ -85,9 +85,11 @@ namespace PSI
         }
 
         std::vector<std::string>  PSIServer::process_query(const std::vector<std::string>& input){
-            return DHOPRFSender.ProcessQeries(input);
+            return DHOPRFSender.ProcessQueries(input);
         }
-
+        std::vector<std::string>  PSIServer::process_query_thread(const std::vector<std::string>& input){
+            return DHOPRFSender.ProcessQueriesThread(input);
+        }
         DPF::DPFResponseList PSIServer::DPFShare(const DPF::DPFKeyList& keylist){
             return DPFClient.DPFShare(keylist,hash_table);
         }

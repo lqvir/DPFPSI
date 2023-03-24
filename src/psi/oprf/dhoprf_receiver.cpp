@@ -132,17 +132,54 @@ namespace PSI{
                 EC_POINT_mul(curve,temp,NULL,temp,key_inv[idx],ctx_ecc);
                 unsigned char* buffer = new unsigned char[POINT_COMPRESSED_BYTE_LEN];
                 auto len = EC_POINT_point2oct(curve,temp,POINT_CONVERSION_COMPRESSED,buffer,POINT_COMPRESSED_BYTE_LEN,ctx_ecc);
-                // std::cout<<len<<std::endl;
-                // printf("\n");
-                // util::printchar(buffer,POINT_COMPRESSED_BYTE_LEN);
+      
                 out[idx].resize(oprf_value_bytes);
                 util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,out[idx].data(),oprf_value_bytes);
             }
+            EC_POINT_free(temp);
+
             return out;
 
 
         }
+        std::vector<OPRFValue> OPRFReceiver::process_response_threads(const std::vector<std::string> responses){
+            ThreadPoolMgr tpm;
+            size_t responses_number = responses.size();
+            size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), responses_number);
+            std::vector<std::future<void>> futures(task_count);
+            
+            std::vector<OPRFValue> out(responses_number);
+            auto ProcessResponseLambda = [&](size_t start_idx,size_t step){
+                EC_POINT* temp = EC_POINT_new(curve);
+                BN_CTX* ctx = BN_CTX_new();
 
+                for(size_t idx = start_idx; idx < responses_number ;idx += step){
+                    auto &x = responses[idx]; 
+                    EC_POINT_oct2point(curve,temp,(uint8_t*)responses.at(idx).data(),POINT_COMPRESSED_BYTE_LEN,ctx);
+
+                    EC_POINT_mul(curve,temp,NULL,temp,key_inv[idx],ctx);
+                    unsigned char* buffer = new unsigned char[POINT_COMPRESSED_BYTE_LEN];
+                    auto len = EC_POINT_point2oct(curve,temp,POINT_CONVERSION_COMPRESSED,buffer,POINT_COMPRESSED_BYTE_LEN,ctx);
+                    out[idx].resize(oprf_value_bytes);
+                    util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,out[idx].data(),oprf_value_bytes);
+
+                }
+
+                BN_CTX_free(ctx);
+                EC_POINT_free(temp);
+            };
+        
+            for (size_t thread_idx = 0; thread_idx < task_count; thread_idx++) {
+                futures[thread_idx] =
+                    tpm.thread_pool().enqueue(ProcessResponseLambda, thread_idx, task_count);
+            }
+
+            for (auto &f : futures) {
+                f.get();
+            }
+            return out;
+
+        }
         
         
         

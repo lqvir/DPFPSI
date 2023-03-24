@@ -287,10 +287,10 @@ void Test0(){
         auto query = client.OPRFQueryThread(ReceiverSet);
         clocks.setpoint(round_name+"oprf finish1");
 
-        auto response = server.process_query(query);
+        auto response = server.process_query_thread(query);
         clocks.setpoint(round_name+"oprf finish2");
 
-        auto value = client.OPRFResponse(response);
+        auto value = client.OPRFResponseThread(response);
         clocks.setpoint(round_name+"oprf finish3");
         
         client.Cuckoo_All_location(value);

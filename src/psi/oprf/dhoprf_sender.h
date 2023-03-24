@@ -19,24 +19,10 @@ namespace PSI{
             int init();
             OPRFValue ComputeItemHash(const Item &item,BN_CTX* ctx = NULL);
             std::vector<OPRFValue> ComputeHashes(const std::span<const Item> &oprf_item);
-            std::vector<std::string> ProcessQeries(const std::vector<std::string> &quries);
+            std::vector<std::string> ProcessQueries(const std::vector<std::string> &queries);
+            std::vector<std::string> ProcessQueriesThread(const std::vector<std::string> &queries);
             
 
-            // static std::vector<unsigned char> ProcessQueries(
-            //     gsl::span<const unsigned char> oprf_queries, const OPRFKey &oprf_key);
-
-            // static std::pair<HashedItem, LabelKey> GetItemHash(
-            //     const Item &item, const OPRFKey &oprf_key);
-
-            // static std::vector<HashedItem> ComputeHashes(
-            //     const gsl::span<const Item> &oprf_items, const OPRFKey &oprf_key);
-
-            // static std::vector<std::pair<HashedItem, EncryptedLabel>> ComputeHashes(
-            //     const gsl::span<const std::pair<Item, Label>> &oprf_item_labels,
-            //     const OPRFKey &oprf_key,
-            //     std::size_t label_byte_count,
-            //     std::size_t nonce_byte_count);
-            
         private:
             EC_GROUP* curve;
             BIGNUM* oprf_key;
