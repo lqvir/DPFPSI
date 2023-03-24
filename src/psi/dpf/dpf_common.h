@@ -11,18 +11,42 @@ namespace PSI
     {
         
         const uint8_t AESKEY[16] = {0xeb,0x28,0xcc,0xa6,0x5c,0x64,0x48,0xa1,0xf9,0x98,0x02,0xe8,0x68,0x0c,0x70,0xfd};
-        constexpr size_t DPF_INPUT_BIT_SIZE = 16;
-        constexpr size_t DPF_INPUT_BYTE_SIZE = 2;
-        constexpr size_t Lambda = 128 ;
-        constexpr size_t Lambda_bytes = 16;
-
-        // DPF_EARLY_BIT_SIZE = min(DPF_INPUT_BIT_SIZE - ceil(lambda/log2(2)),DPF_INPUT_BIT_SIZE)
-        constexpr size_t DPF_EARLY_BIT_SIZE = 6;
-        constexpr size_t DPF_EAYLY_HIGH = DPF_INPUT_BIT_SIZE - DPF_EARLY_BIT_SIZE;
-        // 2 ^ (DPF_INPUT_BIT_SIZE - DPF_EARLY_BIT_SIZE)
-        constexpr size_t DPF_COMPRESS_NODES_NUMBER = 64;
-       
+      
         using DPFResponse = std::array<LabelMask,cuckoo::max_set_size>;
+        
+        using share_type = std::array<uint8_t,Lambda_bytes>;
+        struct DPFKeyEarlyTerminal_ByArray{
+
+            share_type share;
+            std::array<share_type,DPF_EAYLY_HIGH - 1> cw;
+            share_type cw_n_HCW;
+            uint8_t cw_n_last;
+            std::array<uint8_t,DPF_COMPRESS_NODES_BYTE_NUMBER> cw_n1;
+            
+            DPFKeyEarlyTerminal_ByArray(){
+                memset(share.data(),0,share.size());
+                memset(cw.data(),0,cw.size());
+                memset(cw_n_HCW.data(),0,cw_n_HCW.size());
+                memset(cw_n1.data(),0,cw_n1.size());
+
+                cw_n_last = 0;
+            }
+            inline void RandomKey();
+
+        };
+        
+        inline void DPFKeyEarlyTerminal_ByArray::RandomKey(){
+            RAND_bytes(share.data(),share.size());
+            for(auto x : cw){
+                RAND_bytes(x.data(),x.size());
+            }
+            RAND_bytes(&cw_n_last,1);
+            RAND_bytes(cw_n_HCW.data(),cw_n_HCW.size());
+            RAND_bytes(cw_n1.data(),cw_n1.size());
+        }
+        typedef  std::array<std::array<DPF::DPFKeyEarlyTerminal_ByArray,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyEarlyTerminal_ByArrayList; 
+        
+        
         
         struct DPFKey
         {
@@ -194,6 +218,15 @@ namespace PSI
             out =std::bitset<DPF_COMPRESS_NODES_NUMBER>(in.to_string().substr(Lambda-DPF_COMPRESS_NODES_NUMBER-1,DPF_COMPRESS_NODES_NUMBER));
             // std::cout << out.to_string() << std::endl;
         }
+        inline void Convert_to_G(const share_type& in,uint8_t *out){
+            util::copy_bytes(in.data()+1,DPF_COMPRESS_NODES_BYTE_NUMBER,out);
+        }
+
+        
+    
+    
+
+    
     } // namespace DPF
     
 } // namespace PSI

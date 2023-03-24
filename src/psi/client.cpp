@@ -10,6 +10,11 @@ namespace PSI
             auto OPRFQuery = DHOPRFReceiver.process_items(input);
             return OPRFQuery;
         }
+        std::vector<std::string> PSIClient::OPRFQueryThread(const std::vector<Item>& input){
+            DHOPRFReceiver.init();
+            auto OPRFQuery = DHOPRFReceiver.process_items_threads(input);
+            return OPRFQuery;
+        }
         std::vector<std::string> PSIClient::OPRFResponse(const std::vector<std::string>& response){
             auto output = DHOPRFReceiver.process_response(response);
             return output;
@@ -20,10 +25,10 @@ namespace PSI
                 hash_funcs.emplace_back(cuckoo::table_size, kuku::make_item(i, 0));
             }
             std::unordered_set<kuku::location_type> IndexSets;
-                std::cout << "oprf_value" <<std::endl;;
+                // std::cout << "oprf_value" <<std::endl;;
             
             for(auto x : oprf_input){
-                util::printchar((uint8_t*)x.data(),x.size());
+                // util::printchar((uint8_t*)x.data(),x.size());
                 for (auto &hf : hash_funcs) {
                     IndexSets.emplace(hf(kuku::make_item((uint8_t*)x.substr(0,16).data())));
                 }
@@ -87,7 +92,25 @@ namespace PSI
         }
     
     }
+    void PSIClient::DPFGen(
+        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ks,
+        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ka
+                  )
+    {
 
+        for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
+            auto block_size = IndexSets_by_block.at(block_id).size();
+            for(size_t pos_id = 0; pos_id < block_size; pos_id++){
+           
+                DPFServer.Gen(IndexSets_by_block.at(block_id).at(pos_id),1,Ks->at(block_id).at(pos_id),Ka->at(block_id).at(pos_id));
+            }
+            for(size_t pad_idx = block_size ;pad_idx < cuckoo::max_set_size; pad_idx++){
+                Ka->at(block_id).at(pad_idx).RandomKey();
+                Ks->at(block_id).at(pad_idx).RandomKey();
+            }
+        }
+    
+    }
     void PSIClient::DictGen(const std::shared_ptr<DPF::DPFResponseList> ResponseListFromS,
         const std::shared_ptr<DPF::DPFResponseList> ResponseListFromA){
         
@@ -139,7 +162,7 @@ namespace PSI
 #endif
                  
                     auto XorLabelMask = xor_LabelMask(AnsMask,random_mask);
-#if LogLevel <= 1
+#if LogLevel == 0
                     util::printchar((uint8_t*)XorLabelMask.value().data(),XorLabelMask.value().size());
 #endif
                     
@@ -150,12 +173,12 @@ namespace PSI
                 }
             }
         }
-        for(auto x : Ins){
-            printf("item:\n");
-            util::printchar(x.first.get_as<uint8_t>().data(),x.first.get_as<uint8_t>().size());
-            printf("label:\n");
-            util::printchar(x.second.get_as<uint8_t>().data(),x.second.get_as<uint8_t>().size());
-        }
+        // for(auto x : Ins){
+        //     printf("item:\n");
+        //     util::printchar(x.first.get_as<uint8_t>().data(),x.first.get_as<uint8_t>().size());
+        //     printf("label:\n");
+        //     util::printchar(x.second.get_as<uint8_t>().data(),x.second.get_as<uint8_t>().size());
+        // }
         std::cout << "Insection Size" << Ins.size() << std::endl;
 
     }

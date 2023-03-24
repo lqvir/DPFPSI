@@ -7,10 +7,9 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-
-    add_compile_options("/MTd")
+    #add_compile_options("/MTd")
 else()
-add_compile_options("/MT")
+    #add_compile_options("/MT")
 endif()
 ####################
 # Dependencies     #
@@ -48,6 +47,8 @@ set(PSI_SOURCE_FILES "")
 add_subdirectory(src/psi)
 
 add_library(psi)
+# set_target_properties(psi PROPERTIES LINK_FLAGS "-Wl,--stack,16777216")
+
 # include_directories(
 #     ${OPENSSL_INCLUDE_DIR}
 # )
@@ -70,6 +71,18 @@ psi_install_target(psi psiTargets)
 ####################
 # Tests            #
 ####################
+
+# Include(FetchContent)
+# include(CTest)
+
+# FetchContent_Declare(
+#   Catch2
+#   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+#   GIT_TAG        v3.3.2 # or a later release
+# )
+
+# FetchContent_MakeAvailable(Catch2)
+# include(Catch)
 add_executable(psitest)
 
 set(PSI_TEST_FILES "")
@@ -78,9 +91,15 @@ add_subdirectory(tests/psi)
 target_sources(psitest PRIVATE ${PSI_TEST_FILES})
 
 target_link_libraries(psitest PRIVATE psi)
+# target_link_libraries(psitest PRIVATE Catch2::Catch2WithMain)
+# catch_discover_tests(psitest)
 
-message(${Microsoft.GSL_DIR})
+# message(${Microsoft.GSL_DIR})
 
-add_executable(test test.cpp)
-target_link_libraries(test OpenSSL::Crypto)
-
+# add_executable(test test.cpp)
+# target_link_libraries(test OpenSSL::Crypto)
+#enable_testing()
+#add_test(
+#  NAME catch_test
+#  COMMAND $<TARGET_FILE:cpp_test> --success
+#  )

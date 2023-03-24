@@ -25,7 +25,7 @@ namespace PSI{
             BIGNUM*   curve_params_p = BN_new(); 
             BIGNUM* curve_params_a = BN_new();
             BIGNUM* curve_params_b = BN_new(); 
-            EC_GROUP_get_curve_GFp(curve, curve_params_p, curve_params_a, curve_params_b, ctx_b) ;
+            EC_GROUP_get_curve(curve, curve_params_p, curve_params_a, curve_params_b, ctx_b) ;
             BN_BYTE_LEN = BN_num_bits(curve_params_p)/8 + BN_num_bits(curve_params_p)%8;
             POINT_BYTE_LEN = BN_BYTE_LEN * 2 + 1; 
             POINT_COMPRESSED_BYTE_LEN = BN_BYTE_LEN + 1; 
@@ -72,7 +72,7 @@ namespace PSI{
             return result; 
         }
 
-        std::vector<OPRFValue> OPRFSender::ComputeHashes(const gsl::span<const Item> &oprf_items){
+        std::vector<OPRFValue> OPRFSender::ComputeHashes(const std::span<const Item> &oprf_items){
             ThreadPoolMgr tpm;
             std::vector<OPRFValue> oprf_hashes(oprf_items.size());
             size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), oprf_items.size());

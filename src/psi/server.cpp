@@ -92,10 +92,13 @@ namespace PSI
             return DPFClient.DPFShare(keylist,hash_table);
         }
 
-        DPF::DPFResponseList PSIServer::DPFShareFullEval(const DPF::DPFKeyList& keylist){
+        std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const DPF::DPFKeyList& keylist){
             return DPFClient.FullEval(keylist,hash_table);
         }
-        DPF::DPFResponseList PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist){
+        std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist){
+            return DPFClient.FullEval(keylist,hash_table);
+        }
+        std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList> keylist){
             return DPFClient.FullEval(keylist,hash_table);
         }
     } // namespace Server

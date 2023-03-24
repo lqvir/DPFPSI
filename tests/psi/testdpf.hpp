@@ -3,7 +3,7 @@
 
 #include "psi/dpf/dpf_client.h"
 #include "psi/dpf/dpf_server.h"
-
+#include "psi/dpf/pcGGM.h"
 void test_aes(){
     PSI::Item in(0x0102030405060708,0);
     PSI::Item out;
@@ -52,16 +52,21 @@ void test_GenTree(){
     
     PSI::DPF::DPFKeyEarlyTerminal key00,key01;
     test.Gen(23,1,key00,key01);
+    PSI::DPF::DPFKeyEarlyTerminal_ByArray key000,key001;
+    test.Gen(170,1,key000,key001);
 
     auto tree0e = server.DPFGenTree(key00);
     auto tree1e = aid.DPFGenTree(key01);
+    auto tree0ee = PSI::DPF::pcGGM::GenTree(key000);
+    auto tree1ee = PSI::DPF::pcGGM::GenTree(key001);
 
     for(size_t idx = 0; idx < PSI::cuckoo::block_size;idx++){
         auto x1 = server.Eval(idx,key0);
         auto x2 = aid.Eval(idx,key1);
-        printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,x1,x2,test.reconstruct(x1,x2));
-        printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,(uint8_t)tree0[idx],(uint8_t)tree1[idx],test.reconstruct(tree0[idx],tree1[idx]));
-        printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,(uint8_t)tree0e[idx],(uint8_t)tree1e[idx],test.reconstruct(tree0e[idx],tree1e[idx]));
+        // printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,x1,x2,test.reconstruct(x1,x2));
+        // printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,(uint8_t)tree0[idx],(uint8_t)tree1[idx],test.reconstruct(tree0[idx],tree1[idx]));
+        // printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,(uint8_t)tree0e[idx],(uint8_t)tree1e[idx],test.reconstruct(tree0e[idx],tree1e[idx]));
+        printf("idx : %d, x1 : %d x2 : %d ans %d; \n",idx,(uint8_t)tree0ee[idx],(uint8_t)tree1ee[idx],test.reconstruct(tree0ee[idx],tree1ee[idx]));
 
     }
     

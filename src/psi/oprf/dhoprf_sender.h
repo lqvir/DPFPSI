@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include "gsl/span"
+// #include "gsl/span"
 #include "dhoprf_common.h"
 #include "openssl/rand.h"
 // #include "ecpoint_openssl.h"
@@ -18,7 +18,7 @@ namespace PSI{
             // Prepare OPRF key and ECGROUP
             int init();
             OPRFValue ComputeItemHash(const Item &item,BN_CTX* ctx = NULL);
-            std::vector<OPRFValue> ComputeHashes(const gsl::span<const Item> &oprf_item);
+            std::vector<OPRFValue> ComputeHashes(const std::span<const Item> &oprf_item);
             std::vector<std::string> ProcessQeries(const std::vector<std::string> &quries);
             
 

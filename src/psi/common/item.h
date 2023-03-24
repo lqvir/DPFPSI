@@ -5,8 +5,8 @@
 #include <span>
 #include "psi/common/utils.h"
 #include "psi/param.h"
+#include "gsl/span"
 namespace PSI{
-
 
 
 
@@ -38,6 +38,14 @@ class ItemTmpl {
         ItemTmpl(const std::basic_string<CharT> &str)
         {
             operator=<CharT>(str);
+        }
+        template <typename CharT>
+        ItemTmpl(const gsl::span<CharT> &str)
+        {
+            if (str.empty()) {
+                throw std::invalid_argument("str cannot be empty");
+            }
+            util::copy_bytes(str.data(),str.size()*sizeof(CharT),value_.data());
         }
         template <typename CharT>
         ItemTmpl(const std::span<CharT> &str)
@@ -78,7 +86,7 @@ class ItemTmpl {
         auto get_as() const
         {
             constexpr std::size_t count = sizeof(value_) / sizeof(T);
-            return std::span<std::add_const_t<T>, count>(
+            return gsl::span<std::add_const_t<T>, count>(
                 reinterpret_cast<std::add_const_t<T> *>(value_.data()), count);
         }
 
@@ -89,7 +97,7 @@ class ItemTmpl {
         auto get_as()
         {
             constexpr std::size_t count = sizeof(value_) / sizeof(T);
-            return std::span<T, count>(reinterpret_cast<T *>(value_.data()), count);
+            return gsl::span<T, count>(reinterpret_cast<T *>(value_.data()), count);
         }
 
         // only for std::array<uint8_t,2>
@@ -109,7 +117,16 @@ class ItemTmpl {
         {
             return value_;
         }
-        std::string to_string() const;
+        std::string to_string() const
+        {
+            return util::to_string(get_as<uint32_t>());
+        }
+
+        bool test(size_t idx){
+            size_t byte_idx = idx >> 3;
+            size_t bit_idx = idx & 7;
+            return (bool)(value_[byte_idx]&bit_mask[bit_idx]);
+        }
 
     private:
         // void hash_to_value(const void *in, std::size_t size);
@@ -121,6 +138,8 @@ class ItemTmpl {
     using Label = ItemTmpl<std::array<uint8_t,Label_byte_size>>;
     using LabelMask = ItemTmpl<std::array<uint8_t,Label_byte_size+Leading_zero_length>>;
 
+    
+    
 
     LabelMask xor_LabelMask(const LabelMask& buf1,const LabelMask& buf2);
     Label toLabel(const LabelMask& buf);

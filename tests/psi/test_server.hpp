@@ -61,9 +61,8 @@ void test_DPF(){
     auto response = server.process_query(query);
     auto value = client.OPRFResponse(response);
     client.Cuckoo_All_location(value);
-    aidserver.init(hash_table);
-    PSI::DPF::DPFKeyList ks,ka;
-    client.DPFGen(ks,ka);
+    // PSI::DPF::DPFKeyList ks,ka;
+    // client.DPFGen(ks,ka);
 
 
     // client.DictGen(response_s,response_a);
@@ -107,12 +106,12 @@ void test_unbanlanced(){
     auto response = server.process_query(query);
     auto value = client.OPRFResponse(response);
     client.Cuckoo_All_location(value);
-    aidserver.init(hash_table);
-    PSI::DPF::DPFKeyList ks,ka;
-    client.DPFGen(ks,ka);
+    // aidserver.init(hash_table);
+    // PSI::DPF::DPFKeyList ks,ka;
+    // client.DPFGen(ks,ka);
 
-    auto response_s = server.DPFShare(ks);
-    auto response_a = aidserver.DPFShare(ka,hash_table);
+    // auto response_s = server.DPFShare(ks);
+    // auto response_a = aidserver.DPFShare(ka,hash_table);
 
   /*  client.DictGen(response_s,response_a);
     client.InsectionCheck(value,ReceiverSet);*/
@@ -126,61 +125,7 @@ void testXor(){
     PSI::util::printchar(a.value().data(),16);
 }
 
-void test_FUllEval(){
-    std::vector<PSI::Item> ServerSet;
-    std::vector<PSI::Item> ReceiverSet;
 
-    for(size_t idx = 101; idx < 101+4 ; idx ++){
-        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
-        ServerSet.emplace_back(0x123+idx,0x456*idx);   
-    }
-    
-    for(size_t idx = 233; idx < 245 ; idx ++){
-        ServerSet.emplace_back(0x789+idx,0xABC*idx);   
-    }
-
-    for(auto x:ServerSet){
-        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-    }
-    for(auto x:ReceiverSet){
-        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-    }
-    auto sender_size = ServerSet.size();
-    auto receiver_size = ReceiverSet.size();
-    std::vector<PSI::Label> label(sender_size);
-    for(size_t idx = 0 ; idx < sender_size ; idx ++){
-        label[idx] = std::string("00000");
-    }
-
-    PSI::Server::PSIServer server(sender_size);
-    PSI::Client::PSIClient client(receiver_size);
-    PSI::AidServer::AidServer aidserver;
-
-    auto hash_table = server.init(ServerSet,label);
-    
-    auto query = client.OPRFQuery(ReceiverSet);
-    auto response = server.process_query(query);
-    auto value = client.OPRFResponse(response);
-    client.Cuckoo_All_location(value);
-    aidserver.init(hash_table);
-    PSI::DPF::DPFKeyList ks,ka;
-    client.DPFGen(ks,ka);
-
-    auto response_s = server.DPFShare(ks);
-    auto response_a = aidserver.DPFShare(ka,hash_table);
-    
-    auto check_s = server.DPFShareFullEval(ks);
-    auto check_a = aidserver.DPFShareFullEval(ka,hash_table);
-
-    for(size_t idx = 0; idx < PSI::cuckoo::block_num; idx ++){
-        for(size_t mask_idx = 0; mask_idx < PSI::cuckoo::max_set_size; mask_idx++){
-            std::cout << idx << ' ' << mask_idx << std::endl;
-            std::cout << (response_s.at(idx).at(mask_idx) == check_s.at(idx).at(mask_idx)) << ' ';
-            std::cout << (response_a.at(idx).at(mask_idx) == check_a.at(idx).at(mask_idx)) << std::endl;
-
-        }
-    }
-}
 
 void test_unbanlancedFullEval(){
 
@@ -192,7 +137,7 @@ void test_unbanlancedFullEval(){
         ServerSet.emplace_back(0x123+idx,0x456*idx);   
     }
     
-    for(size_t idx = 0; idx < 48 ; idx ++){
+    for(size_t idx = 0; idx < 65520 ; idx ++){
         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
     }
 
@@ -222,7 +167,6 @@ void test_unbanlancedFullEval(){
     auto response = server.process_query(query);
     auto value = client.OPRFResponse(response);
     client.Cuckoo_All_location(value);
-    aidserver.init(hash_table);
     PSI::DPF::DPFKeyList ks,ka;
     client.DPFGen(ks,ka);
 
@@ -241,12 +185,12 @@ void test_early_terminal(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
     clocks.setpoint("start");
-    for(size_t idx = 0; idx < 16 ; idx ++){
+    for(size_t idx = 0; idx < 5000 ; idx ++){
         ReceiverSet.emplace_back(0x123+idx,0x456*idx);
         ServerSet.emplace_back(0x123+idx,0x456*idx);   
     }
     
-    for(size_t idx = 0; idx < 1024 ; idx ++){
+    for(size_t idx = 0; idx < 50000 ; idx ++){
         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
     }
 
@@ -283,16 +227,16 @@ void test_early_terminal(){
     client.Cuckoo_All_location(value);
     std::cout << __LINE__ << std::endl;
 
-    aidserver.init(hash_table);
+    clocks.setpoint("cuckoo finish ");
 
-    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminalList>();
-    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminalList>();
+    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
 
 
     client.DPFGen(ks,ka);
     clocks.setpoint("key generate finish ");
-    auto response_s = std::make_shared<PSI::DPF::DPFResponseList>(server.DPFShareFullEval(ks));
-    auto response_a = std::make_shared<PSI::DPF::DPFResponseList>(aidserver.DPFShareFullEval(ka, hash_table));
+    auto response_s = server.DPFShareFullEval(ks);
+    auto response_a = aidserver.DPFShareFullEval(ka, hash_table);
 
     clocks.setpoint("Full Eval finish ");
 
@@ -300,4 +244,82 @@ void test_early_terminal(){
     client.InsectionCheck(value,ReceiverSet);
     clocks.setpoint("ALL Eval finish ");
     clocks.printTimePointRecord();
+}
+void Test0(){
+    PSI::StopWatch clocks("Test0");
+
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    size_t Rsize = 5535;
+    size_t Ssize = 65536;
+    std::vector<PSI::Label> label(Ssize);
+    clocks.setpoint("start");  
+    for(size_t idx = 0;idx < Ssize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ServerSet.emplace_back(temp[0],temp[1]);
+        RAND_bytes((uint8_t*)temp,16);
+        label.emplace_back(temp[0],temp[1]);
+    }
+    for(size_t idx = 0; idx < Rsize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ReceiverSet.emplace_back(temp[0],temp[1]);
+    }
+    clocks.setpoint("prepare_data_finish");  
+    clocks.setDurationStart("offline");
+    PSI::Server::PSIServer server(Ssize);
+    PSI::AidServer::AidServer aidserver;
+    auto hash_table = server.init(ServerSet,label);
+    clocks.setDurationEnd("offline");
+
+    for(size_t round_idx = 0; round_idx <= 10; round_idx++){
+        std::string round_name = "round"+std::to_string(round_idx);
+        clocks.setpoint(round_name+"start");
+        for(size_t idx = 0; idx < 32;idx++){
+            ReceiverSet[idx*5+round_idx*11] = ServerSet[idx*5+round_idx*11];
+        }
+        PSI::Client::PSIClient client(Rsize);
+
+        clocks.setDurationStart(round_name);
+        clocks.setpoint(round_name+"preprae data finish");
+        auto query = client.OPRFQueryThread(ReceiverSet);
+        clocks.setpoint(round_name+"oprf finish1");
+
+        auto response = server.process_query(query);
+        clocks.setpoint(round_name+"oprf finish2");
+
+        auto value = client.OPRFResponse(response);
+        clocks.setpoint(round_name+"oprf finish3");
+        
+        client.Cuckoo_All_location(value);
+
+        clocks.setpoint(round_name+"cuckoo finish ");
+        
+        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+        client.DPFGen(ks,ka);
+        clocks.setpoint(round_name+"key generate finish ");
+
+        auto response_s = server.DPFShareFullEval(ks);
+        auto response_a = aidserver.DPFShareFullEval(ka, hash_table);
+
+        clocks.setpoint(round_name+"Full Eval finish ");
+
+        client.DictGen(response_s,response_a);
+        client.InsectionCheck(value,ReceiverSet);
+        clocks.setpoint(round_name+"ALL Eval finish ");
+
+        clocks.setDurationEnd(round_name);
+
+    }
+
+    clocks.printTimePointRecord();
+
+    std::cout<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<std::endl;
+
+    clocks.printDurationRecord();
 }

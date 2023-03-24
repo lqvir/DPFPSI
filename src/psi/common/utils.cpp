@@ -12,7 +12,15 @@ namespace PSI{
                 *buf1 = static_cast<unsigned char>(*buf1 ^ *buf2);
             }
         }
+        void xor_buffers(uint8_t* out,unsigned char *buf1, const unsigned char *buf2, size_t count){
 
+            for (; count >= 4; count -= 4, buf1 += 4, buf2 += 4, out+=4) {
+                *reinterpret_cast<uint32_t *>(out) =*reinterpret_cast<uint32_t *>(buf1)^ (*reinterpret_cast<const uint32_t *>(buf2));
+            }
+            for (; count; count--, buf1++, buf2++,out++) {
+                *out = static_cast<unsigned char>(*buf1 ^ *buf2);
+            }
+        }
 
         void copy_bytes(const void *src, size_t count, void *dst){
 

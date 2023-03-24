@@ -9,12 +9,7 @@ namespace PSI
     namespace cuckoo
     {
 
-        constexpr size_t hash_func_count = 3;
-        constexpr size_t table_size  = 16000;
-        constexpr size_t cuckoo_table_insert_attempts = 1000;
-        constexpr size_t block_size = 320;
-        constexpr size_t block_num = table_size/block_size;
-        constexpr size_t max_set_size = 160;
+
         
         
         inline size_t get_pos(size_t BinID){

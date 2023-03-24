@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 #include <span>
-#include "gsl/span"
+// #include "gsl/span"
 #include "openssl/evp.h"
 
 namespace PSI{
@@ -54,7 +54,7 @@ namespace PSI{
         template <typename T, typename ToString>
         std::string to_string(const std::vector<T> &values, ToString to_string_fun)
         {
-            return to_string(gsl::span<const T>(values), to_string_fun);
+            return to_string(std::span<const T>(values), to_string_fun);
         }
 
         /**
@@ -103,7 +103,7 @@ namespace PSI{
         Computes the XOR of two byte buffers.
         */
         void xor_buffers(unsigned char *buf1, const unsigned char *buf2, std::size_t count);
-
+        void xor_buffers(uint8_t* out,unsigned char *buf1, const unsigned char *buf2, std::size_t count);
         /**
         Copies bytes from source to destination, throwing an exception if either source or
         destination is nullptr. The memory ranges are assumed to be non-overlapping.

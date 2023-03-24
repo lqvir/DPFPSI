@@ -1,5 +1,6 @@
 
 #include "dpf_server.h"
+#include "pcGGM.h"
 #include "openssl/rand.h"
 #include "bitset"
 namespace PSI
@@ -14,6 +15,11 @@ namespace PSI
 
         }
         
+        void dpf_server::Gen(size_t alpha,uint8_t beta,DPFKeyEarlyTerminal_ByArray& key0,DPFKeyEarlyTerminal_ByArray& key1){
+            pcGGM::GenKey(alpha,beta,key0,key1);
+        }
+
+
         void dpf_server::Gen(std::bitset<DPF_INPUT_BIT_SIZE> alpha_bitset,uint8_t beta,DPFKey& key0,DPFKey& key1){
                         // step 2
             std::bitset<Lambda> Delta;

@@ -5,7 +5,6 @@
 #include "psi/common/thread_pool_mgr.h"
 #include "psi/common/item.h"
 #include <chrono>
-#include "gsl/span"
 #include <vector>
 using namespace PSI::OPRF;
 
@@ -47,7 +46,7 @@ void test_hashitems(){
     for(int i = 0; i < 10; i++){
         input_V.emplace_back(i*1315158,i<<20);
     }
-    gsl::span<PSI::Item> input(input_V.data(),10);
+    std::span<PSI::Item> input(input_V.data(),10);
     auto value = oprfsender.ComputeHashes(input);
     for(auto x: value){
         PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
@@ -61,7 +60,7 @@ void testReceiver(){
     for(int i = 0; i < 10; i++){
         input_V.emplace_back(i*1315158,i<<20);
     }
-    gsl::span<PSI::Item> input(input_V.data(),10);
+    std::span<PSI::Item> input(input_V.data(),10);
     oprfreceier.process_items(input);
 }
 void testoprf(){
@@ -132,7 +131,13 @@ void testOPRF(){
     auto value = oprfsender.ComputeHashes(ServerSet);
     
     auto qurie = oprfreceier.process_items(ReceiverSet);
-    auto response = oprfsender.ProcessQeries(qurie);
+    auto query = oprfreceier.process_items_threads(ReceiverSet);
+    
+    // for(size_t idx = 0; idx < query.size(); idx++){
+    //     assert(query[idx] == qurie[idx]);
+    // }
+    
+    auto response = oprfsender.ProcessQeries(query);
     auto rvalue = oprfreceier.process_response(response);
     for(auto x:value){
          PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);

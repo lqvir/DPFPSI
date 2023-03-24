@@ -10,8 +10,9 @@
 #include "dhoprf_common.h"
 #include "psi/common/utils.h"
 #include "psi/common/item.h"
+#include <span>
 //GSL
-#include "gsl/span"
+// #include "gsl/span"
 
 namespace PSI{
     namespace OPRF{
@@ -21,7 +22,8 @@ namespace PSI{
             ~OPRFReceiver();
 
             int init();
-            std::vector<std::string> process_items(gsl::span<const Item> oprf_items);
+            std::vector<std::string> process_items(std::span<const Item> oprf_items);
+            std::vector<std::string> process_items_threads(std::span<const Item> oprf_items);
             std::vector<std::string> process_response(const std::vector<std::string> responses);
         private:
             EC_GROUP* curve;

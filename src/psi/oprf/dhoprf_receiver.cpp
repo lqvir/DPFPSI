@@ -3,6 +3,9 @@
 // OpenSSL
 #include "openssl/rand.h"
 
+#include "psi/common/thread_pool_mgr.h"
+
+#include <memory>
 
 namespace PSI{
     namespace OPRF{
@@ -19,7 +22,8 @@ namespace PSI{
             BIGNUM*   curve_params_p = BN_new(); 
             BIGNUM* curve_params_a = BN_new();
             BIGNUM* curve_params_b = BN_new(); 
-            EC_GROUP_get_curve_GFp(curve, curve_params_p, curve_params_a, curve_params_b, ctx_b) ;
+
+            EC_GROUP_get_curve(curve, curve_params_p, curve_params_a, curve_params_b, ctx_b) ;
             BN_BYTE_LEN = BN_num_bits(curve_params_p)/8 + BN_num_bits(curve_params_p)%8;
             POINT_BYTE_LEN = BN_BYTE_LEN * 2 + 1; 
             POINT_COMPRESSED_BYTE_LEN = BN_BYTE_LEN + 1; 
@@ -36,7 +40,7 @@ namespace PSI{
             BN_CTX_free(ctx_ecc);
         }
 
-        std::vector<std::string> OPRFReceiver::process_items(gsl::span<const Item> oprf_items){
+        std::vector<std::string> OPRFReceiver::process_items(std::span<const Item> oprf_items){
             size_t item_number = oprf_items.size();
             BIGNUM* oprf_key = BN_new();      
             BIGNUM* item_bn = BN_new();
@@ -77,7 +81,46 @@ namespace PSI{
             BN_free(item_bn);
             return out;
         }
+        std::vector<std::string> OPRFReceiver::process_items_threads(std::span<const Item> oprf_items){
+            ThreadPoolMgr tpm;
+            size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), oprf_items.size());
+            size_t item_number = oprf_items.size();
+            
+            std::vector<std::future<void>> futures(task_count);
+            std::vector<std::string> out(item_number);
+            key_inv.resize(item_number);
 
+            auto ProcessItemLambda = [&](size_t start_idx,size_t step) {
+                BN_CTX* ctx = BN_CTX_new();
+                BIGNUM* oprf_key = BN_new();      
+
+                for(size_t idx = start_idx; idx < item_number; idx+= step){
+                    auto ref = oprf_items[idx].get_as<char>();
+                    key_inv[idx] = BN_new();
+                    auto temp = BlockToECPoint(curve,ref.data(),ctx);
+
+                    MakeRandomNonzeroScalar(oprf_key,order);
+                    EC_POINT_mul(curve,temp,NULL,temp,oprf_key,ctx);
+                    BN_mod_inverse(key_inv[idx], oprf_key, order, ctx);
+                    unsigned char* buffer = new unsigned char[POINT_COMPRESSED_BYTE_LEN];
+                    auto len = EC_POINT_point2oct(curve,temp,POINT_CONVERSION_COMPRESSED,buffer,POINT_COMPRESSED_BYTE_LEN,ctx);
+                    out[idx] = std::string(buffer,buffer+POINT_COMPRESSED_BYTE_LEN);
+                }
+                BN_free(oprf_key);
+                BN_CTX_free(ctx);
+            };
+
+            for (size_t thread_idx = 0; thread_idx < task_count; thread_idx++) {
+                futures[thread_idx] =
+                    tpm.thread_pool().enqueue(ProcessItemLambda, thread_idx, task_count);
+            }
+
+            for (auto &f : futures) {
+                f.get();
+            }
+            return out;
+
+        }
         std::vector<OPRFValue> OPRFReceiver::process_response(const std::vector<std::string> responses){
             size_t responses_number = responses.size();
             std::vector<OPRFValue> out(responses_number);

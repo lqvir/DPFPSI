@@ -1,5 +1,5 @@
 #pragma once
-#include "gsl/span"
+// #include "gsl/span"
 #include "openssl/ec.h"
 #include "openssl/obj_mac.h"
 #include <cstring>

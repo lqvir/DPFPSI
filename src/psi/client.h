@@ -18,6 +18,7 @@ namespace PSI{
                 PSIClient() = default;
                 PSIClient(size_t client_set_size):client_set_size_(client_set_size){};
                 std::vector<std::string> OPRFQuery(const std::vector<Item>& input);
+                std::vector<std::string> OPRFQueryThread(const std::vector<Item>& input);
                 std::vector<std::string> OPRFResponse(const std::vector<std::string>& response);
                 void Cuckoo_All_location(const std::vector<std::string>& oprf_input);
                 void DPFGen(
@@ -27,7 +28,10 @@ namespace PSI{
                     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ks,
                     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ka
                 );
-
+              void DPFGen(
+                    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ks,
+                    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ka
+                );
 
 
                 void DictGen(
