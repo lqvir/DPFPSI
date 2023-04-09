@@ -12,10 +12,10 @@ namespace PSI{
                 *buf1 = static_cast<unsigned char>(*buf1 ^ *buf2);
             }
         }
-        void xor_buffers(uint8_t* out,unsigned char *buf1, const unsigned char *buf2, size_t count){
+        void xor_buffers(uint8_t* out,const unsigned char *buf1, const unsigned char *buf2, size_t count){
 
             for (; count >= 4; count -= 4, buf1 += 4, buf2 += 4, out+=4) {
-                *reinterpret_cast<uint32_t *>(out) =*reinterpret_cast<uint32_t *>(buf1)^ (*reinterpret_cast<const uint32_t *>(buf2));
+                *reinterpret_cast<uint32_t *>(out) =*reinterpret_cast<const uint32_t *>(buf1)^ (*reinterpret_cast<const uint32_t *>(buf2));
             }
             for (; count; count--, buf1++, buf2++,out++) {
                 *out = static_cast<unsigned char>(*buf1 ^ *buf2);
@@ -68,13 +68,13 @@ namespace PSI{
         int blake2b512(void* in,size_t inlen,void* out,size_t out_len){
             uint8_t md[EVP_MAX_MD_SIZE];
             uint32_t md_size;
-            EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+            // EVP_MD_CTX* ctx = EVP_MD_CTX_new();
             EVP_Digest(in,inlen,md,&md_size,EVP_blake2b512(),NULL);
 // #if LogLevel == 0
 //             // printchar((uint8_t*) md, md_size);
 // #endif
             memcpy(out,md,out_len);
-            EVP_MD_CTX_free(ctx);
+            // EVP_MD_CTX_free(ctx);
             return 0;
         }
     } //namespace util

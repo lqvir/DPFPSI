@@ -8,12 +8,7 @@ namespace PSI
     namespace DPF
     {
  
-        void dpf_server::init() 
-        {
-         
 
-
-        }
         
         void dpf_server::Gen(size_t alpha,uint8_t beta,DPFKeyEarlyTerminal_ByArray& key0,DPFKeyEarlyTerminal_ByArray& key1){
             pcGGM::GenKey(alpha,beta,key0,key1);
@@ -33,19 +28,6 @@ namespace PSI
             Random_Bitset(key0.share);
             key1.share = key0.share ^ Delta;
         
-            
-            
-            // std::stringstream ss;
-            // std::string alpha_bit;
-            // for(size_t i = 0,char temp[16] ; i < alpha.size(); i++){
-            //     ss << std::bitset<8>(alpha[i]);
-            // }
-            // std::bitset<DPF_INPUT_BIT_SIZE> alpha_bitset;
-            // ss >> alpha_bitset;
-            // step 1
-
-            // std::cout << alpha_bitset << std::endl;
-            // std::cout << Delta << std::endl;
             std::bitset<Lambda> share_i_0,share_i_1;
             share_i_0 = key0.share;
             share_i_1 = key1.share;

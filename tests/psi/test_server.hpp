@@ -323,3 +323,172 @@ void Test0(){
 
     clocks.printDurationRecord();
 }
+
+void Test1(){
+    PSI::StopWatch clocks("Test1");
+
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    size_t Rsize = 5535;
+    size_t Ssize = 1048576;
+    std::vector<PSI::Label> label(Ssize);
+    clocks.setpoint("start");  
+    for(size_t idx = 0;idx < Ssize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ServerSet.emplace_back(temp[0],temp[1]);
+        RAND_bytes((uint8_t*)temp,16);
+        label.emplace_back(temp[0],temp[1]);
+    }
+    for(size_t idx = 0; idx < Rsize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ReceiverSet.emplace_back(temp[0],temp[1]);
+    }
+    clocks.setpoint("prepare_data_finish");  
+    clocks.setDurationStart("offline");
+    PSI::Server::PSIServer server(Ssize);
+    PSI::AidServer::AidServer aidserver;
+    auto hash_table = server.init_FourQ(ServerSet,label);
+    clocks.setDurationEnd("offline");
+
+    for(size_t round_idx = 0; round_idx <= 10; round_idx++){
+        std::string round_name = "round"+std::to_string(round_idx);
+        clocks.setpoint(round_name+"start");
+        for(size_t idx = 0; idx < 32;idx++){
+            ReceiverSet[idx*5+round_idx*11] = ServerSet[idx*5+round_idx*11];
+        }
+        PSI::Client::PSIClient client(Rsize);
+
+        clocks.setDurationStart(round_name);
+        clocks.setpoint(round_name+"preprae data finish");
+        auto query = client.OPRFQueryThreadFourQ(ReceiverSet);
+        clocks.setpoint(round_name+"oprf finish1");
+
+        auto response = server.process_query_threadFourQ(query);
+        clocks.setpoint(round_name+"oprf finish2");
+
+        auto value = client.OPRFResponseThreadFourQ(response);
+        clocks.setpoint(round_name+"oprf finish3");
+        
+        client.Cuckoo_All_location(value);
+
+        clocks.setpoint(round_name+"cuckoo finish ");
+        
+        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+        client.DPFGen(ks,ka);
+        clocks.setpoint(round_name+"key generate finish ");
+
+        auto response_s = server.DPFShareFullEval(ks);
+        auto response_a = aidserver.DPFShareFullEval(ka, hash_table);
+
+        clocks.setpoint(round_name+"Full Eval finish ");
+
+        client.DictGen(response_s,response_a);
+        client.InsectionCheck(value,ReceiverSet);
+        clocks.setpoint(round_name+"ALL Eval finish ");
+
+        clocks.setDurationEnd(round_name);
+
+    }
+
+    clocks.printTimePointRecord();
+
+    std::cout<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<std::endl;
+
+    clocks.printDurationRecord();
+}
+
+#include "psi/common/Network/Session.h"
+#include "psi/common/Network/IOService.h"
+#include "psi/common/Network/Channel.h"
+#include "psi/common/thread_pool_mgr.h"
+void Test2(){
+    PSI::StopWatch clocks("Test1");
+
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    size_t Rsize = 5535;
+    size_t Ssize = 65536;
+    std::vector<PSI::Label> label(Ssize);
+    clocks.setpoint("start");  
+    for(size_t idx = 0;idx < Ssize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ServerSet.emplace_back(temp[0],temp[1]);
+        RAND_bytes((uint8_t*)temp,16);
+        label.emplace_back(temp[0],temp[1]);
+    }
+    for(size_t idx = 0; idx < Rsize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ReceiverSet.emplace_back(temp[0],temp[1]);
+    }
+
+    PSI::Server::PSIServer server(Ssize);
+    PSI::IOService iosS;
+    PSI::IOService iosA;
+    PSI::Session sessionS(iosS,"127.0.0.1:50000",PSI::SessionMode::Server);
+    std::vector<PSI::Channel> chlsS(PSI::ThreadPoolMgr::GetThreadCount());
+    for(auto &chl : chlsS){
+        chl = sessionS.addChannel();
+    }
+    PSI::Session sessionA(iosA,"127.0.0.1:50001",PSI::SessionMode::Server);
+    std::vector<PSI::Channel> chlsA(PSI::ThreadPoolMgr::GetThreadCount());
+    for(auto &chl : chlsA){
+        chl = sessionA.addChannel();
+    }
+    auto hash_table = server.init_FourQ(ServerSet,label);
+    for(size_t idx = 0; idx < 32;idx++){
+        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    }
+    auto lambdaClient = [&](){
+        PSI::Client::PSIClient client(Rsize);
+        client.run("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
+
+    };
+    auto lambdaAidServer = [&](){
+        PSI::AidServer::AidServer aidserver;
+        aidserver.run("127.0.0.1:50001",hash_table,chlsA);
+    };
+    auto threads = std::async(lambdaAidServer);
+
+    auto threadc = std::async(lambdaClient);
+    server.run(chlsS);
+
+
+    threadc.get();
+    threads.get();
+    size_t comm_S_send=0;
+    size_t comm_S_recv=0;
+    size_t comm_A_send=0;
+    size_t comm_A_recv=0;
+
+    for(auto x : chlsS){
+        comm_S_send+= x.getTotalDataSent();
+        comm_S_recv+= x.getTotalDataRecv();
+    }
+    for(auto x : chlsA){
+        comm_A_send+= x.getTotalDataSent();
+        comm_A_recv+= x.getTotalDataRecv();
+    }
+    std::cout << "S send" <<1.0*comm_S_send/1024/1024 << "S recv" << 1.0*comm_S_recv/1024/1024 << std::endl;
+    std::cout << "A send" <<1.0*comm_A_send/1024/1024 << "A recv" << 1.0*comm_A_send/1024/1024 << std::endl;
+    for(auto &chl : chlsA){
+        chl.close();
+    }        
+    for(auto &chl : chlsS){
+        chl.close();
+    }            
+    sessionA.stop();
+
+    sessionS.stop();
+    iosS.stop();
+    iosA.stop();
+
+}

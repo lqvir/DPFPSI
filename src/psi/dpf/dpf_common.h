@@ -188,6 +188,17 @@ namespace PSI
             PSI::util::xor_buffers(output,input_u8,Lambda_bytes);
         }
 
+        inline void Keyed_hash_func(const uint8_t* input,uint8_t* output,EVP_CIPHER_CTX* ctx){
+            uint8_t input_u8[Lambda_bytes];
+            memcpy(input_u8,input,Lambda_bytes);
+            sigma(input_u8);
+
+            int mlen = 0;
+            // uint8_t out[32];
+            int ret = EVP_EncryptUpdate(ctx, (unsigned char*)output, &mlen, input_u8, Lambda_bytes);
+            PSI::util::xor_buffers(output,input_u8,Lambda_bytes);
+        }
+
         inline void Keyed_hash_func(const std::bitset<Lambda>& in,std::bitset<Lambda>& out){
             uint8_t outChar[Lambda_bytes];
             uint64_t inChar[Lambda_bytes>>3] ={0};

@@ -10,6 +10,7 @@
 #include "dhoprf_common.h"
 #include "psi/common/utils.h"
 #include "psi/common/item.h"
+#include "ecpoint_openssl.h"
 #include <span>
 //GSL
 // #include "gsl/span"
@@ -22,10 +23,20 @@ namespace PSI{
             ~OPRFReceiver();
 
             int init();
-            std::vector<std::string> process_items(std::span<const Item> oprf_items);
-            std::vector<std::string> process_items_threads(std::span<const Item> oprf_items);
-            std::vector<std::string> process_response(const std::vector<std::string> responses);
-            std::vector<OPRFValue> process_response_threads(const std::vector<std::string> responses);
+            std::vector<OPRFPointOpenSSL> process_items(std::span<const Item> oprf_items);
+            std::vector<OPRFPointOpenSSL> process_items_threads(std::span<const Item> oprf_items);
+            std::vector<OPRFValueOpenssL> process_response(const std::vector<OPRFPointOpenSSL>& responses);
+            std::vector<OPRFValueOpenssL> process_response_threads(const std::vector<OPRFPointOpenSSL>& responses);
+        
+            std::vector<OPRFPointFourQ> 
+                process_itemsFourQ(std::span<const Item> oprf_items);
+            std::vector<OPRFPointFourQ> 
+                process_items_threadsFourQ(std::span<const Item> oprf_items);
+            std::vector<OPRFValueOpenssL> 
+                process_responseFourQ(const std::vector<OPRFPointFourQ>& responses);
+            std::vector<OPRFValueOpenssL> 
+                process_response_threadsFourQ(const std::vector<OPRFPointFourQ>& responses);
+        
         private:
             EC_GROUP* curve;
             BN_CTX* ctx_b;
@@ -33,7 +44,8 @@ namespace PSI{
             const BIGNUM* order;
             size_t point_hex_len;
             std::vector<BIGNUM*> key_inv;
-            size_t BN_BYTE_LEN,POINT_BYTE_LEN,POINT_COMPRESSED_BYTE_LEN;
+            std::vector<std::array<uint8_t,32>> key_inv_fourq;
+            size_t BN_BYTE_LEN,POINT_BYTE_LEN;
 
         };
 

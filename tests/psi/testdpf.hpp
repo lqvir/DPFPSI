@@ -20,7 +20,6 @@ void test_dpf(){
     PSI::DPF::dpf_client test0(0);
     PSI::DPF::dpf_client test1(1);
 
-    test.init();
     PSI::DPF::DPFKey t1,t2;
     test.Gen(15,1,t1,t2);
 
@@ -39,7 +38,6 @@ void test_GenTree(){
     PSI::DPF::dpf_server test;
     PSI::DPF::dpf_client server(0);
     PSI::DPF::dpf_client aid(1);
-    test.init();
 
     PSI::DPF::DPFKey key0,key1;
 

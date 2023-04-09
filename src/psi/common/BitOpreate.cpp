@@ -31,7 +31,7 @@ namespace PSI
       
     }
 
-    bool bitcheck(uint8_t* input,size_t idx){
+    bool bitcheck(const uint8_t* input,size_t idx){
         size_t byte_idx = idx >> 3;
         size_t bit_idx = idx & 0x7;
         return (bool)(input[byte_idx]&bit_mask[bit_idx]);

@@ -11,6 +11,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     #add_compile_options("/MT")
 endif()
+
 ####################
 # Dependencies     #
 ####################
@@ -20,6 +21,39 @@ find_package(Microsoft.GSL REQUIRED)
 # find_package(Boost REQUIRED)
 message(${VCPKG_TARGET_TRIPLET})
 set(CMAKE_CXX_STANDARD 20)
+# set(CMAKE_CXX_EXTENSIONS OFF)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# set_property(DIRECTORY PROPERTY EP_BASE ${CMAKE_BINARY_DIR}/subprojects)
+# set(STAGED_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/stage)
+# message(STATUS "${PROJECT_NAME} staged install: ${STAGED_INSTALL_PREFIX}")
+
+list(APPEND BOOST_COMPONENTS_REQUIRED  system thread atomic regex data_time)
+find_package(Boost REQUIRED QUIET COMPONENTS system thread atomic regex date_time)
+
+# add_subdirectory(external/upstream)
+# include(ExternalProject)
+
+# ExternalProject_Add(${PROJECT_NAME}_core
+#   DEPENDS
+#       boost_external
+#   SOURCE_DIR
+#       ${CMAKE_CURRENT_LIST_DIR}/src
+#   CMAKE_ARGS
+#     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+#     -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+#     -DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}
+#     -DCMAKE_CXX_STANDARD_REQUIRED=${CMAKE_CXX_STANDARD_REQUIRED}
+#   CMAKE_CACHE_ARGS
+#     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+#     -DCMAKE_INCLUDE_PATH:PATH=${BOOST_INCLUDEDIR}
+#     -DCMAKE_LIBRARY_PATH:PATH=${BOOST_LIBRARYDIR}
+#   BUILD_ALWAYS
+#       1
+#   INSTALL_COMMAND
+#       ""
+#   )
+
 ####################
 # Libs             #
 ####################
@@ -37,16 +71,47 @@ macro(psi_install_target target export)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endmacro()
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 
-# set(PSI_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/psi)
-message(${CMAKE_CURRENT_BINARY_DIR})
+
+
 
 
 set(PSI_SOURCE_FILES "")
 add_subdirectory(src/psi)
 
 add_library(psi)
+include(DetectArch)
+if(PSI_FOURQ_AMD64)
+    target_compile_options(psi PUBLIC -D_AMD64_)
+    message(STATUS "FourQlib optimization: arch=AMD64")
+else()
+    target_compile_options(psi PUBLIC -D_GENERIC_)
+    message(STATUS "FourQlib optimization: arch=GENERIC")
+endif()
+
+# Set AVX or AVX2 if not generic
+if(PSI_FOURQ_AMD64)
+    include(FindAVX)
+    check_for_avx(psi)
+    if (HAVE_AVX2_EXTENSIONS)
+        target_compile_options(psi PUBLIC -D_AVX2_)
+        message(STATUS "FourQlib optimization: simd=AVX2")
+    elseif(HAVE_AVX_EXTENSIONS)
+        target_compile_options(psi PUBLIC -D_AVX_)
+        message(STATUS "FourQlib optimization: simd=AVX")
+    endif()
+else()
+    message(STATUS "FourQlib optimization: simd=OFF")
+endif()
+
+if(MSVC)
+    target_compile_options(psi PUBLIC -D__WINDOWS__)
+elseif (UNIX)
+    target_compile_options(psi PUBLIC -D__LINUX__)
+endif()
+
 # set_target_properties(psi PROPERTIES LINK_FLAGS "-Wl,--stack,16777216")
 
 # include_directories(
@@ -58,6 +123,9 @@ target_link_libraries(psi
     PUBLIC Microsoft.GSL::GSL
     PUBLIC Kuku::kuku
     )
+target_link_libraries(psi
+    PUBLIC Boost::boost Boost::regex Boost::system
+)
 target_sources(psi PRIVATE ${PSI_SOURCE_FILES})
 
 target_include_directories(psi PUBLIC

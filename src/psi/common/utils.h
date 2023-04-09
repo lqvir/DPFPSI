@@ -103,7 +103,7 @@ namespace PSI{
         Computes the XOR of two byte buffers.
         */
         void xor_buffers(unsigned char *buf1, const unsigned char *buf2, std::size_t count);
-        void xor_buffers(uint8_t* out,unsigned char *buf1, const unsigned char *buf2, std::size_t count);
+        void xor_buffers(uint8_t* out,const unsigned char *buf1, const unsigned char *buf2, std::size_t count);
         /**
         Copies bytes from source to destination, throwing an exception if either source or
         destination is nullptr. The memory ranges are assumed to be non-overlapping.

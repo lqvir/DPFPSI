@@ -13,6 +13,6 @@ namespace PSI{
     void Bit_xor1_bytes(uint8_t* input,size_t idx);
 
 
-    bool bitcheck(uint8_t* input,size_t idx);
+    bool bitcheck(const uint8_t* input,size_t idx);
     
 } // namespace PSI

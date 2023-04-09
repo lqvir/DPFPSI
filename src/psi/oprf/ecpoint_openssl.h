@@ -1,88 +1,83 @@
-// #include "gsl/span"
-#include "openssl/ec.h"
-#include "openssl/obj_mac.h"
+#pragma once
+
+// STD
+#include <array>
+#include <cstddef>
+#include <cstring>
+#include <iostream>
+#include <memory>
+
+// GSL
+#include "gsl/span"
+
+#include "dhoprf_common.h"
+#include "psi/fourq/FourQ.h"
 
 namespace PSI{
-    namespace OPRF{
-        namespace ECGROUP{
+    namespace OPRF
+    {
+        class ECPointFourQ{
+        public:
+            static constexpr std::size_t save_size = sizeof(f2elm_t);
+            static constexpr std::size_t point_size = sizeof(point_t);
+            static constexpr std::size_t order_size = sizeof(digit_t) * NWORDS_ORDER;
             
-            static EC_GROUP *group;
-            const static EC_POINT *generator; 
-            static size_t BN_BYTE_LEN;  
-            static BIGNUM *order;
-            static BIGNUM *cofactor;  // The cofactor of this group
-            static BIGNUM *curve_params_p; 
-            static BIGNUM *curve_params_a; 
-            static BIGNUM *curve_params_b;
-            static BIGNUM *curve_params_q; // q = (p-1)/2
+            
+            using scalar_type = std::array<unsigned char, order_size>;
+            using scalar_const_type = const scalar_type;
 
-            static size_t POINT_BYTE_LEN; // the byte length of ec point
-            static size_t POINT_COMPRESSED_BYTE_LEN; // the byte length of ec point in compressed form
+            using scalar_span_type = gsl::span<unsigned char, order_size>;
+            using scalar_span_const_type = gsl::span<const unsigned char, order_size>;
 
-            static BN_CTX *ec_ctx; // define ctx for ecc operations
+            using input_span_const_type = gsl::span<const unsigned char>;
 
-            static int curve_id = NID_X9_62_prime256v1; 
-            // static int curve_id = NID_secp256k1; 
+            using point_save_span_type = gsl::span<unsigned char, save_size>;
+            using point_save_span_const_type = gsl::span<const unsigned char, save_size>;
+
+            // Output hash size is 32 bytes: 16 for item hash and 16 for label encryption key
+            static constexpr std::size_t hash_size = oprf_value_bytes;
+
+            using hash_span_type = gsl::span<unsigned char, hash_size>;
+
+            // Initializes the ECPoint with the neutral element
+            ECPointFourQ() = default;
+
+            ECPointFourQ &operator=(const ECPointFourQ &assign);
+
+            ECPointFourQ(const ECPointFourQ &copy)
+            {
+                operator=(copy);
+            }
 
 
-            void ECGroup_Initialize(){
+            ECPointFourQ(input_span_const_type value);
 
+            // Creates a random non-zero number modulo the prime order subgroup
+            // order and computes its inverse.
+            static void MakeRandomNonzeroScalar(scalar_span_type out);
 
-                group = EC_GROUP_new_by_curve_name(curve_id);
-                // If this fails, this is usually due to an invalid curve id.
-                // CRYPTO_CHECK(group !=nullptr);
+            static void InvertScalar(scalar_span_const_type in, scalar_span_type out);
 
-                generator = EC_GROUP_get0_generator(group);
+            bool scalar_multiply(scalar_span_const_type scalar, bool clear_cofactor);
 
-                order = BN_new(); 
-                // CRYPTO_CHECK(EC_GROUP_get_order(group, order, bn_ctx) == 1);
+            void save(std::ostream &stream) const;
 
-                cofactor = BN_new(); 
-                // CRYPTO_CHECK(EC_GROUP_get_cofactor(group, cofactor, bn_ctx) == 1); 
+            void load(std::istream &stream);
 
-                curve_params_p = BN_new(); 
-                curve_params_a = BN_new();
-                curve_params_b = BN_new(); 
+            void save(point_save_span_type out) const;
 
-                // CRYPTO_CHECK(EC_GROUP_get_curve_GFp(group, curve_params_p, curve_params_a, curve_params_b, bn_ctx) == 1); 
+            void load(point_save_span_const_type in);
 
-                size_t rounds = 100; 
-                // CRYPTO_CHECK(BN_is_prime_ex(curve_params_p, rounds, bn_ctx, nullptr) == 1);
+            void extract_hash(hash_span_type out) const;
 
-                curve_params_q = BN_new(); 
-                BN_rshift(curve_params_q, curve_params_p, 1); // p_minus_one_over_two = (p-1)/2
+        private:
+            // Initialize to neutral element
+            point_t pt_ = { { { { 0 } }, { { 1 } } } }; // { {.x = { 0 }, .y = { 1 } }};
+        };
 
-                // PrintSplitLine('-'); 
-                // std::cout << "EC group info >>> " << std::endl;
+        typedef std::array<uint8_t,ECPointFourQ::save_size> OPRFPointFourQ;
+        // typedef std::array<uint8_t,ECPointFourQ::order_size> OPRFPointFourQ;
 
-                // std::cout << "a = " << BN_bn2hex(curve_params_a) << std::endl;  
-                // std::cout << "b = " << BN_bn2hex(curve_params_b) << std::endl;  
-                // std::cout << "p = " << BN_bn2hex(curve_params_p) << std::endl;  
-                // std::cout << "q = " << BN_bn2hex(curve_params_q) << std::endl;  
-                // PrintSplitLine('-'); 
-
-                BN_BYTE_LEN = BN_num_bits(curve_params_p)/8 + BN_num_bits(curve_params_p)%8;
-                POINT_BYTE_LEN = BN_BYTE_LEN * 2 + 1; 
-                POINT_COMPRESSED_BYTE_LEN = BN_BYTE_LEN + 1; 
-
-                
-                
+    } // namespace OPRF
     
-            }
-
-            void ECGroup_Finalize(){
-                EC_GROUP_free(group);
-                
-                BN_free(curve_params_p); 
-                BN_free(curve_params_a); 
-                BN_free(curve_params_b);
-                BN_free(curve_params_q); 
-
-                BN_free(order); 
-                BN_free(cofactor); 
-            }
-
-        }
-    } 
-
-}
+} //namespace PSI

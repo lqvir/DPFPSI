@@ -123,6 +123,9 @@ namespace PSI
 
         // simply DPFTree 
         pcGGMLeafList dpf_client::DPFGenTree(const DPFKey& key){
+
+
+
             pcGGMLeafList ans;
             size_t cnt = 0;
             std::stack<std::pair<std::bitset<Lambda>,size_t>> DFSStack;
@@ -194,7 +197,7 @@ namespace PSI
                 }
 
             }
-            
+
             return ans;
         }
 
@@ -277,6 +280,8 @@ namespace PSI
 
 
         std::shared_ptr<DPFResponseList> dpf_client::FullEval(const DPFKeyList& dpfkeylist,const std::vector<LabelMask>& hash_table){
+
+
 
             std::shared_ptr<DPFResponseList> dpf_response_list = std::make_shared<DPFResponseList>();
             ThreadPoolMgr tpm;

@@ -1,29 +1,56 @@
 #include "client.h"
 #include "cuckoo_hash/cuckoo.h"
 #include <unordered_set>
+#include "common/thread_pool_mgr.h"
+#include "common/stopwatch.h"
+#include "gsl/span"
 namespace PSI
 {
     namespace Client
     {
-        std::vector<std::string> PSIClient::OPRFQuery(const std::vector<Item>& input){
+        std::vector<OPRF::OPRFPointOpenSSL> PSIClient::OPRFQuery(const std::vector<Item>& input){
             DHOPRFReceiver.init();
             auto OPRFQuery = DHOPRFReceiver.process_items(input);
             return OPRFQuery;
         }
-        std::vector<std::string> PSIClient::OPRFQueryThread(const std::vector<Item>& input){
+        std::vector<OPRF::OPRFPointOpenSSL> PSIClient::OPRFQueryThread(const std::vector<Item>& input){
             DHOPRFReceiver.init();
             auto OPRFQuery = DHOPRFReceiver.process_items_threads(input);
             return OPRFQuery;
         }
-        std::vector<std::string> PSIClient::OPRFResponse(const std::vector<std::string>& response){
+        std::vector<OPRF::OPRFValueOpenssL> PSIClient::OPRFResponse(const std::vector<OPRF::OPRFPointOpenSSL>& response){
             auto output = DHOPRFReceiver.process_response(response);
             return output;
         }
-        std::vector<std::string> PSIClient::OPRFResponseThread(const std::vector<std::string>& response){
+        std::vector<OPRF::OPRFValueOpenssL> PSIClient::OPRFResponseThread(const std::vector<OPRF::OPRFPointOpenSSL>& response){
             auto output = DHOPRFReceiver.process_response_threads(response);
             return output;
         }
-        void PSIClient::Cuckoo_All_location(const std::vector<std::string>& oprf_input){
+
+        std::vector<OPRF::OPRFPointFourQ> PSIClient::OPRFQueryFourQ(const std::vector<Item>& input){
+            DHOPRFReceiver.init();
+            auto OPRFQuery = DHOPRFReceiver.process_itemsFourQ(input);
+            return OPRFQuery;
+        }
+        std::vector<OPRF::OPRFPointFourQ> PSIClient::OPRFQueryThreadFourQ(const std::vector<Item>& input){
+            DHOPRFReceiver.init();
+            auto OPRFQuery = DHOPRFReceiver.process_items_threadsFourQ(input);
+            return OPRFQuery;
+        }
+        std::vector<OPRF::OPRFValueOpenssL> PSIClient::OPRFResponseFourQ(const std::vector<OPRF::OPRFPointFourQ>& response){
+            auto output = DHOPRFReceiver.process_responseFourQ(response);
+            return output;
+        }
+        std::vector<OPRF::OPRFValueOpenssL> PSIClient::OPRFResponseThreadFourQ(const std::vector<OPRF::OPRFPointFourQ>& response){
+            auto output = DHOPRFReceiver.process_response_threadsFourQ(response);
+            return output;
+        }
+
+
+
+
+
+        void PSIClient::Cuckoo_All_location(const std::vector<OPRF::OPRFValueOpenssL>& oprf_input){
             std::vector<kuku::LocFunc> hash_funcs;
             for (uint32_t i = 0; i < cuckoo::hash_func_count; i++) {
                 hash_funcs.emplace_back(cuckoo::table_size, kuku::make_item(i, 0));
@@ -34,7 +61,7 @@ namespace PSI
             for(auto x : oprf_input){
                 // util::printchar((uint8_t*)x.data(),x.size());
                 for (auto &hf : hash_funcs) {
-                    IndexSets.emplace(hf(kuku::make_item((uint8_t*)x.substr(0,16).data())));
+                    IndexSets.emplace(hf(kuku::make_item((uint8_t*)x.data())));
                 }
             }
             // std::cout << __LINE__ << std::endl;
@@ -48,13 +75,14 @@ namespace PSI
             for(auto &Indexset: IndexSets_by_block){
                 if(Indexset.size()>= cuckoo::max_set_size){
                     std::cout << " The number of elements in the set exceeds the maximum value." << std::endl;
+                    for(auto x : IndexSets_by_block){
+                        std::cout << x.size() << std::endl;
+                    }
                     throw std::runtime_error("Overload");
                 }
                 // std::cout << std::endl;
 
-                // for(auto x : Indexset){
-                //     std::cout << x << std::endl;
-                // }
+
                 // std::cout << std::endl;
             }
 
@@ -62,7 +90,6 @@ namespace PSI
         }
         
     void PSIClient::DPFGen(DPF::DPFKeyList& Ks,DPF::DPFKeyList& Ka){
-        DPFServer.init();
 
         for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
             auto block_size = IndexSets_by_block.at(block_id).size();
@@ -81,7 +108,6 @@ namespace PSI
         std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ka
                   )
     {
-        DPFServer.init();
 
         for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
             auto block_size = IndexSets_by_block.at(block_id).size();
@@ -141,7 +167,7 @@ namespace PSI
         }
 
     }
-    void PSIClient::InsectionCheck(const std::vector<std::string>& oprf_input,const std::vector<Item>& input){
+    void PSIClient::InsectionCheck(std::vector<OPRF::OPRFValueOpenssL>& oprf_input,const std::vector<Item>& input){
         std::vector<kuku::LocFunc> hash_funcs;
         std::string zero_mask;
         zero_mask.assign(Leading_zero_length,'\0');
@@ -150,11 +176,11 @@ namespace PSI
         }
         std::vector<std::pair<Item,PSI::Label>> Ins;
         for(size_t idx = 0; idx < oprf_input.size(); idx++){
-            auto &x = oprf_input[idx];
-
-            auto random_mask = x.substr(16,Leading_zero_length+Label_byte_size);
+            gsl::span<uint8_t,OPRF::oprf_value_bytes> x(oprf_input[idx]);
+            auto random_mask = x.subspan(16,Mask_byte_size);
+            auto oprf_value = x.subspan(0,OPRF::oprf_key_bytes);
             for (auto &hf : hash_funcs) {
-                auto binID = hf(kuku::make_item((uint8_t*)x.substr(0,16).data()));
+                auto binID = hf(kuku::make_item((uint8_t*)oprf_value.data()));
                 auto search = Dict.find(binID);
                 if(search != Dict.end()){
                     auto AnsMask = search->second;
@@ -186,7 +212,58 @@ namespace PSI
         std::cout << "Insection Size" << Ins.size() << std::endl;
 
     }
-    
+    void PSIClient::run(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input){
+        StopWatch clocks("PSIClient");
+        clocks.setpoint("start");
+        IOService iosS;
+        IOService iosA;
+        Session sessionS(iosS,ServerAddress,SessionMode::Client);
+        Session sessionA(iosA,AidServerAddress,SessionMode::Client);
+        std::vector<Channel> chlsS(ThreadPoolMgr::GetThreadCount());
+        std::vector<Channel> chlsA(ThreadPoolMgr::GetThreadCount());
+
+        for(auto &chl : chlsS){
+            chl = sessionS.addChannel();
+        }
+        for(auto &chl : chlsA){
+            chl = sessionA.addChannel();
+        }
+        auto query = OPRFQueryThreadFourQ(input);
+        chlsS[0].send(query);
+        std::vector<OPRF::OPRFPointFourQ> response(client_set_size_);
+        chlsS[1].recv(response);
+        auto oprf_value = OPRFResponseThreadFourQ(response);
+        Cuckoo_All_location(oprf_value);
+        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+
+        DPFGen(ks,ka);
+        
+        chlsS[0].send(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
+
+        chlsA[0].send(reinterpret_cast<uint8_t*>(ka.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
+
+        std::shared_ptr<PSI::DPF::DPFResponseList> ResponseS = std::make_shared<PSI::DPF::DPFResponseList>();
+        std::shared_ptr<PSI::DPF::DPFResponseList> ResponseA = std::make_shared<PSI::DPF::DPFResponseList>();
+        chlsS[1].recv(reinterpret_cast<uint8_t*>(ResponseS.get()),sizeof(PSI::DPF::DPFResponseList));
+        chlsA[1].recv(reinterpret_cast<uint8_t*>(ResponseA.get()),sizeof(PSI::DPF::DPFResponseList));
+
+        DictGen(ResponseS,ResponseA);
+        InsectionCheck(oprf_value,input);
+
+        for(auto chl : chlsS){
+            chl.close();
+        }
+
+        for(auto chl : chlsA){
+            chl.close();
+        }
+
+        sessionS.stop();
+        sessionA.stop();
+        iosS.stop();
+        iosA.stop();
+    }
      
 
     } // namespace Client

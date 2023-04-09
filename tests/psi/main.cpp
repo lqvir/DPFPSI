@@ -3,6 +3,7 @@
 #include "testdpf.hpp"
 #include "test_server.hpp"
 #include "test_stopwatch.hpp"
+#include "test_network.hpp"
 // #include "catch2/catch_test_macros.hpp"
 // static int Factorial( int number ) {
 //    return number <= 1 ? number : Factorial( number - 1 ) * number;  // fail
@@ -24,11 +25,12 @@ int main(){
     PSI::ThreadPoolMgr::SetThreadCount(4);
     PSI::StopWatch clock1("All time ");
     clock1.setpoint("start");
-    Test0();
+    // Test0();
+    Test2();
     clock1.setpoint("finish early terminal");
     // test_unbanlancedFullEval();
     // clock1.setpoint("finish without early terminal");
-    std::cout<<sizeof(PSI::DPF::DPFKey) << std::endl;
+    std::cout<<sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList) << std::endl;
     std::cout<<"hello"<<std::endl;
     clock1.printTimePointRecord();
     return 0;

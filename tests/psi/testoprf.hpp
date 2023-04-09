@@ -147,6 +147,45 @@ void testOPRF(){
          PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
     }
 }
+void test_OPRF_FourQ(){
+    OPRFSender oprfsender;
+    OPRFReceiver oprfreceier;
+
+    oprfsender.init();
+    oprfreceier.init();
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    for(size_t idx = 0; idx < 16 ; idx ++){
+        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
+        ServerSet.emplace_back(0x123+idx,0x456*idx);   
+    }
+    
+    for(size_t idx = 0; idx < 1024 ; idx ++){
+        ServerSet.emplace_back(0x789+idx,0xABC*idx);   
+    }
+    auto value = oprfsender.ComputeHashesFourQ(ServerSet);
+    
+    auto qurie = oprfreceier.process_itemsFourQ(ReceiverSet);
+    auto query = oprfreceier.process_items_threadsFourQ(ReceiverSet);
+    
+    // for(size_t idx = 0; idx < query.size(); idx++){
+    //     assert(query[idx] == qurie[idx]);
+    // }
+    
+    auto response = oprfsender.ProcessQueriesThreadFourQ(query);
+    auto rvalue = oprfreceier.process_response_threadsFourQ(response);
+    for(auto x:value){
+         PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
+    }
+    std::cout << std::endl;
+    for(auto x:rvalue){
+         PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
+    }
+
+
+}
+
 
 
 void test_to_ECPOINT(){

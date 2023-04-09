@@ -1,6 +1,10 @@
 #pragma once
 #include "param.h"
 #include "dpf/dpf_client.h"
+
+#include "common/Network/Session.h"
+#include "common/Network/IOService.h"
+#include "common/Network/Channel.h"
 namespace PSI{
     namespace AidServer
     {
@@ -17,6 +21,7 @@ namespace PSI{
                 const std::shared_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList> keylist,
                 const std::vector<LabelMask>& hash_table_input
                 );
+            void run(std::string ClientAddress,const std::vector<LabelMask>& input,std::vector<Channel>& chlsC);
 
             
         private:

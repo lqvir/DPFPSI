@@ -19,4 +19,6 @@ install(
     DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR}/psi/common
 )
+add_subdirectory(Network)
+
 set(PSI_SOURCE_FILES ${PSI_SOURCE_FILES} PARENT_SCOPE)

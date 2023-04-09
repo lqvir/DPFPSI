@@ -12,6 +12,9 @@ namespace PSI{
             std::cout << alpha << std::endl;
             util::printchar(reinterpret_cast<uint8_t*>(&alpha),8);
 #endif
+            
+            
+            
             auto alpha_uint8 = reinterpret_cast<uint8_t*>(&alpha);
             uint8_t Delta[Lambda_bytes];
             RAND_bytes(Delta,Lambda_bytes);
@@ -20,6 +23,12 @@ namespace PSI{
             RAND_bytes(key0.share.data(),key0.share.size());
             util::xor_buffers(key1.share.data(),key0.share.data(),Delta,Lambda_bytes);
             
+            auto ctx = EVP_CIPHER_CTX_new();
+            EVP_CIPHER_CTX_init(ctx);
+            int ret = EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, AESKEY, NULL);
+            EVP_CIPHER_CTX_set_padding(ctx, 0);
+
+
             share_type share_i_0,share_i_1;
             share_i_0 = key0.share;
             share_i_1 = key1.share;
@@ -29,10 +38,11 @@ namespace PSI{
 
                 for(size_t i = DPF_INPUT_BIT_SIZE - 1; i > DPF_EARLY_BIT_SIZE; i--){
                     share_type Hs_out_1,Hs_out_0;
-                    Keyed_hash_func(share_i_0.data(),Hs_out_0.data());
-                    Keyed_hash_func(share_i_1.data(),Hs_out_1.data());
+                    Keyed_hash_func(share_i_0.data(),Hs_out_0.data(),ctx);
+                    Keyed_hash_func(share_i_1.data(),Hs_out_1.data(),ctx);
 
                     util::xor_buffers(CW_i.data(),Hs_out_0.data(),Hs_out_1.data(),Lambda_bytes);
+                    
 
                     if(bitcheck(alpha_uint8,i)){
                         util::xor_buffers(share_next0.data(),share_i_0.data(),Hs_out_0.data(),Lambda_bytes);
@@ -67,10 +77,10 @@ namespace PSI{
             Bit_xor1_bytes(share_i_0_xor_1.data(),0);
             Bit_xor1_bytes(share_i_1_xor_1.data(),0);
 
-            Keyed_hash_func(share_i_0.data(),High_Low_super0_sub0.data());
-            Keyed_hash_func(share_i_0_xor_1.data(),High_Low_super1_sub0.data());
-            Keyed_hash_func(share_i_1.data(),High_Low_super0_sub1.data());  
-            Keyed_hash_func(share_i_1_xor_1.data(),High_Low_super1_sub1.data());
+            Keyed_hash_func(share_i_0.data(),High_Low_super0_sub0.data(),ctx);
+            Keyed_hash_func(share_i_0_xor_1.data(),High_Low_super1_sub0.data(),ctx);
+            Keyed_hash_func(share_i_1.data(),High_Low_super0_sub1.data(),ctx);  
+            Keyed_hash_func(share_i_1_xor_1.data(),High_Low_super1_sub1.data(),ctx);
 
             share_type& HCW = key0.cw_n_HCW;
             if(bitcheck(alpha_uint8,DPF_EARLY_BIT_SIZE)){
@@ -121,9 +131,18 @@ namespace PSI{
             util::xor_buffers(sn_list0.data(),sn_list1.data(),DPF_COMPRESS_NODES_BYTE_NUMBER);
             util::xor_buffers(key0.cw_n1.data(),sn_list0.data(),vec_beta.data(),DPF_COMPRESS_NODES_BYTE_NUMBER);
             key1.cw_n1 = key0.cw_n1;
+            EVP_CIPHER_CTX_cleanup(ctx);
+            EVP_CIPHER_CTX_free(ctx);
+        
         }
 
         pcGGMLeafList pcGGM::GenTree(const DPFKeyEarlyTerminal_ByArray& key){
+            auto ctx = EVP_CIPHER_CTX_new();
+            EVP_CIPHER_CTX_init(ctx);
+            int ret = EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, AESKEY, NULL);
+            EVP_CIPHER_CTX_set_padding(ctx, 0);
+
+
             pcGGMLeafList ans;
             size_t cnt = 0;
             std::stack<std::pair<share_type,size_t>> DFSStack;
@@ -138,10 +157,10 @@ namespace PSI{
                 if(now.second == DPF_EAYLY_HIGH - 1){ // n - 1 break the loop 
                         share_type share_n0;
                         share_type share_n1;
-                        Keyed_hash_func(now.first.data(),share_n0.data());
+                        Keyed_hash_func(now.first.data(),share_n0.data(),ctx);
                         share_type now_first = now.first;
                         Bit_xor1_onebyte(now_first[0],0);
-                        Keyed_hash_func(now_first.data(),share_n1.data());
+                        Keyed_hash_func(now_first.data(),share_n1.data(),ctx);
                         if(bitcheck(now.first.data(),0)){
                            util::xor_buffers(share_n0.data(),mid_string0.data(),Lambda_bytes);
                            util::xor_buffers(share_n1.data(),mid_string1.data(),Lambda_bytes);
@@ -166,7 +185,7 @@ namespace PSI{
                 else{
                     share_type Hs_out;
                     memset(Hs_out.data(),0,sizeof(Hs_out));
-                    Keyed_hash_func(now.first.data(),Hs_out.data());
+                    Keyed_hash_func(now.first.data(),Hs_out.data(),ctx);
                     if(bitcheck(now.first.data(),0)){
                         util::xor_buffers(Hs_out.data(),key.cw.at(DPF_EAYLY_HIGH-2-now.second).data(),Lambda_bytes);
                     }
@@ -177,6 +196,9 @@ namespace PSI{
                 }
 
             }
+
+            EVP_CIPHER_CTX_cleanup(ctx);
+            EVP_CIPHER_CTX_free(ctx);
             return ans;
 
         }

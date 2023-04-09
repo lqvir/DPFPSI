@@ -14,8 +14,8 @@ namespace PSI
     #define LogLevel 1
 
     namespace DPF{
-        constexpr size_t DPF_INPUT_BIT_SIZE = 8;
-        constexpr size_t DPF_INPUT_BYTE_SIZE = 1;
+        constexpr size_t DPF_INPUT_BIT_SIZE = 12;
+        constexpr size_t DPF_INPUT_BYTE_SIZE = 2;
         constexpr size_t Lambda = 128 ;
         constexpr size_t Lambda_bytes = 16;
 
@@ -49,14 +49,27 @@ namespace PSI
         0b10111111,
         0b01111111
     };
+    
 
     namespace cuckoo{
-        constexpr size_t hash_func_count = 3;
-        constexpr size_t table_size  = 65536+10240*2;
-        
-        constexpr size_t cuckoo_table_insert_attempts = 1000;
-        constexpr size_t block_size = 256;
-        constexpr size_t block_num = table_size/block_size;
-        constexpr size_t max_set_size = 80;
+        namespace cuckooparam1048576{
+            constexpr size_t hash_func_count = 3;
+            constexpr size_t table_size  = 1048576+1024*256;
+            constexpr size_t cuckoo_table_insert_attempts = 1000;
+            constexpr size_t block_size = 4096;
+            constexpr size_t block_num = table_size/block_size;
+            constexpr size_t max_set_size = 80;
+        }        
+        namespace cuckooparam65536{
+            constexpr size_t hash_func_count = 3;
+            constexpr size_t table_size  = 65536+256*50;
+            constexpr size_t cuckoo_table_insert_attempts = 1000;
+            constexpr size_t block_size = 256;
+            constexpr size_t block_num = table_size/block_size;
+            constexpr size_t max_set_size = 80;
+        }
+        using namespace cuckooparam65536;
+
     } // namespace cuckoo
+    
 } // namespace PSI
