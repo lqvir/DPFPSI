@@ -198,6 +198,7 @@ namespace PSI
         }
 
         void PSIServer::start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
+            StopWatch clocks("PSIServer");
             IOService ios;
             Session SessionC(ios,SelfAddress,SessionMode::Server);
             Session SessionA(ios,AidAddress,SessionMode::Client);
@@ -208,11 +209,13 @@ namespace PSI
                 chl = SessionC.addChannel(); 
             }
             for(auto &chl : chlsA){
-                chl = SessionC.addChannel(); 
+                chl = SessionA.addChannel(); 
             }
+            clocks.setDurationStart("Offline");
 
             init_FourQ(input,input_Label);
             chlsA[0].send(reinterpret_cast<uint8_t*>(hash_table.data()),Mask_byte_size*cuckoo::table_size);
+            clocks.setDurationEnd("Offline");
 
             run(chlsC);
             for(auto &chl : chlsC){
@@ -221,6 +224,7 @@ namespace PSI
             for(auto &chl : chlsA){
                 chl.close();
             }
+            clocks.printDurationRecord();
             SessionA.stop();
             SessionC.stop();
             ios.stop();

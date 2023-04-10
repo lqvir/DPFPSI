@@ -454,7 +454,7 @@ void Test2(){
     };
     auto lambdaAidServer = [&](){
         PSI::AidServer::AidServer aidserver;
-        aidserver.run("127.0.0.1:50001",hash_table,chlsA);
+        aidserver.run(hash_table,chlsA);
     };
     auto threads = std::async(lambdaAidServer);
 
@@ -490,5 +490,47 @@ void Test2(){
     sessionS.stop();
     iosS.stop();
     iosA.stop();
+
+}
+
+void Test3(){
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    size_t Rsize = 5535;
+    size_t Ssize = 1048576;
+    std::vector<PSI::Label> label(Ssize);
+    for(size_t idx = 0;idx < Ssize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ServerSet.emplace_back(temp[0],temp[1]);
+        RAND_bytes((uint8_t*)temp,16);
+        label.emplace_back(temp[0],temp[1]);
+    }
+    for(size_t idx = 0; idx < Rsize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ReceiverSet.emplace_back(temp[0],temp[1]);
+    }
+    for(size_t idx = 0; idx < 32;idx++){
+        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    }
+    PSI::Server::PSIServer server(Ssize);
+
+    auto lambdaClient = [&](){
+        PSI::Client::PSIClient client(Rsize);
+        client.run("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
+
+    };
+    auto lambdaAidServer = [&](){
+        PSI::AidServer::AidServer aidserver;
+        aidserver.start("127.0.0.1:50002","127.0.0.1:50001");
+    };
+    auto threads = std::async(lambdaAidServer);
+
+    auto threadc = std::async(lambdaClient);
+    server.start("127.0.0.1:50000","127.0.0.1:50002",ServerSet,label);
+    threadc.get();
+    threads.get();
 
 }

@@ -21,8 +21,8 @@ namespace PSI{
                 const std::shared_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList> keylist,
                 const std::vector<LabelMask>& hash_table_input
                 );
-            void run(std::string ClientAddress,const std::vector<LabelMask>& input,std::vector<Channel>& chlsC);
-
+            void run(const std::vector<LabelMask>& input,std::vector<Channel>& chlsC);
+            void start(std::string SelfAddress,std::string ServerAddress);
             
         private:
 

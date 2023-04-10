@@ -228,16 +228,22 @@ namespace PSI
         for(auto &chl : chlsA){
             chl = sessionA.addChannel();
         }
+        clocks.setpoint("OPRFStart");
+
         auto query = OPRFQueryThreadFourQ(input);
         chlsS[0].send(query);
         std::vector<OPRF::OPRFPointFourQ> response(client_set_size_);
         chlsS[1].recv(response);
         auto oprf_value = OPRFResponseThreadFourQ(response);
+
+        clocks.setpoint("OPRFFinish");
+
         Cuckoo_All_location(oprf_value);
         std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
         std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
 
         DPFGen(ks,ka);
+        clocks.setpoint("DPFFinish");
         
         chlsS[0].send(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
 
@@ -250,7 +256,10 @@ namespace PSI
 
         DictGen(ResponseS,ResponseA);
         InsectionCheck(oprf_value,input);
+        clocks.setpoint("Finish");
 
+        clocks.printTimePointRecord();
+        
         for(auto chl : chlsS){
             chl.close();
         }

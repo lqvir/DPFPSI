@@ -68,7 +68,7 @@ namespace PSI
             constexpr size_t block_num = table_size/block_size;
             constexpr size_t max_set_size = 80;
         }
-        using namespace cuckooparam65536;
+        using namespace cuckooparam1048576;
 
     } // namespace cuckoo
     

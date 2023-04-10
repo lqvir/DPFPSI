@@ -26,7 +26,7 @@ int main(){
     PSI::StopWatch clock1("All time ");
     clock1.setpoint("start");
     // Test0();
-    Test2();
+    Test3();
     clock1.setpoint("finish early terminal");
     // test_unbanlancedFullEval();
     // clock1.setpoint("finish without early terminal");

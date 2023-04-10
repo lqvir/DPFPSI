@@ -15,6 +15,7 @@ namespace PSI{
         for(size_t idx = 0; idx < (Mask_byte_size>>2); idx++){
             res[idx] = buf1_[idx]^ buf2_[idx];
         }
+        // util::xor_buffers(res,buf1_,buf2_,Mask_byte_size);
         return Result;
     }
 
