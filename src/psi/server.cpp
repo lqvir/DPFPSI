@@ -216,14 +216,19 @@ namespace PSI
             init_FourQ(input,input_Label);
             chlsA[0].send(reinterpret_cast<uint8_t*>(hash_table.data()),Mask_byte_size*cuckoo::table_size);
             clocks.setDurationEnd("Offline");
+            // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
 
             run(chlsC);
             for(auto &chl : chlsC){
+
                 chl.close();
             }
+            size_t cnt = 0;
             for(auto &chl : chlsA){
+                cnt += chl.getTotalDataSent()+chl.getTotalDataRecv();
                 chl.close();
             }
+            std::cout <<"off com size"<<cnt / 1024.0/1024.0  << std::endl;
             clocks.printDurationRecord();
             SessionA.stop();
             SessionC.stop();
@@ -236,12 +241,12 @@ namespace PSI
             std::vector<OPRF::OPRFPointFourQ> query(server_set_size_);
             chlsC[0].recv(query);
             auto response = process_query_threadFourQ(query);
-            chlsC[1].send(response);
+            chlsC[0].send(response);
 
             std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
             chlsC[0].recv(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
             auto response_s = DPFShareFullEval(ks);
-            chlsC[1].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));
+            chlsC[0].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));
 
 
 

@@ -173,7 +173,6 @@ void R1_to_R2(point_extproj_t P, point_extproj_precomp_t Q)
   // Input:  P = (X1,Y1,Z1,Ta,Tb), where T1 = Ta*Tb, corresponding to (X1:Y1:Z1:T1) in extended
   // twisted Edwards coordinates Output: Q = (X1+Y1,Y1-X1,2Z1,2dT1) corresponding to (X1:Y1:Z1:T1)
   // in extended twisted Edwards coordinates
-
     fp2add1271(P->ta, P->ta, Q->t2);                  // T = 2*Ta
     fp2add1271(P->x, P->y, Q->xy);                    // QX = X+Y
     fp2sub1271(P->y, P->x, Q->yx);                    // QY = Y-X

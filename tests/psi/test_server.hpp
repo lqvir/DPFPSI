@@ -497,7 +497,7 @@ void Test3(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    size_t Rsize = 5535;
+    size_t Rsize = 11041;
     size_t Ssize = 1048576;
     std::vector<PSI::Label> label(Ssize);
     for(size_t idx = 0;idx < Ssize; idx++){
@@ -516,9 +516,10 @@ void Test3(){
         ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
     }
     PSI::Server::PSIServer server(Ssize);
-
+    
     auto lambdaClient = [&](){
         PSI::Client::PSIClient client(Rsize);
+
         client.run("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
 
     };

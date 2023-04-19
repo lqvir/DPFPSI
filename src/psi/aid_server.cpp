@@ -31,7 +31,7 @@ namespace PSI{
             chlsC[0].recv(reinterpret_cast<uint8_t*>(ka.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
             auto response_a = DPFShareFullEval(ka,input);
 
-            chlsC[1].send(reinterpret_cast<uint8_t*>(response_a.get()),sizeof(PSI::DPF::DPFResponseList));
+            chlsC[0].send(reinterpret_cast<uint8_t*>(response_a.get()),sizeof(PSI::DPF::DPFResponseList));
             
     
 

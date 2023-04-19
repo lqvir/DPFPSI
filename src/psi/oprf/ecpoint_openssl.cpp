@@ -38,6 +38,7 @@ namespace PSI
         }
         ECPointFourQ::ECPointFourQ(input_span_const_type value)
         {
+            // util::printchar((uint8_t*)value.data(),value.size() );
             if (!value.empty()) {
                 f2elm_t r;
 
@@ -56,6 +57,8 @@ namespace PSI
                     (void*)r,
                     sizeof(r)
                 );
+                //  util::printchar((uint8_t*)r,sizeof(f2elm_t) );
+
                 // Reduce r; note that this does not produce a perfectly uniform distribution modulo
                 // 2^127-1, but it is good enough.
                 mod1271(r[0]);
@@ -63,6 +66,17 @@ namespace PSI
 
                 // Create an elliptic curve point
                 HashToCurve(r, pt_);
+
+                // point_t pt_copy{ pt_[0] };
+                // point_extproj_t R;
+                // point_setup(pt_copy, R);
+                // if (ecc_point_validate(R) == false) {
+                //     fpneg1271(R->x[1]);
+                //     fpcopy1271(R->x[1], pt_copy->x[1]);
+                //     if (ecc_point_validate(R) == false) { // Final point validation
+                //         std::cout << "error" << std::endl;
+                //     }
+                // }
             }
         }
 
@@ -142,11 +156,17 @@ namespace PSI
         {
             point_t pt_copy{ pt_[0] };
             encode(pt_copy, out.data());
+            // util::printchar(out.data(),out.size());
+         
+
         }
 
         void ECPointFourQ::load(point_save_span_const_type in)
         {
+            // util::printchar((uint8_t*)in.data(),in.size());
+
             if (decode(in.data(), pt_) != ECCRYPTO_SUCCESS) {
+                // std::cout << __LINE__ <<std::endl;
                 throw std::logic_error("invalid point");
             }
         }

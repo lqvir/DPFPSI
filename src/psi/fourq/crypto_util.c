@@ -113,13 +113,13 @@ ECCRYPTO_STATUS decode(const unsigned char *Pencoded, point_t P)
     }
 
     point_setup(P, R);
-    if (ecc_point_validate(R) == false) {
-        fpneg1271(R->x[1]);
-        fpcopy1271(R->x[1], P->x[1]);
-        if (ecc_point_validate(R) == false) { // Final point validation
-            return ECCRYPTO_ERROR;
-        }
-    }
+    // if (ecc_point_validate(R) == false) {
+    //     fpneg1271(R->x[1]);
+    //     fpcopy1271(R->x[1], P->x[1]);
+    //     if (ecc_point_validate(R) == false) { // Final point validation
+    //         return ECCRYPTO_ERROR;
+    //     }
+    // }
 
     return ECCRYPTO_SUCCESS;
 }

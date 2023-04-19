@@ -155,7 +155,8 @@ namespace PSI{
             ECPointFourQ ecpt(item.get_as<const unsigned char>());
 
             // Multiply with key
-            ecpt.scalar_multiply(oprf_key_fourq, true);
+            if(!ecpt.scalar_multiply(oprf_key_fourq, true)){
+            }
             OPRFValueOpenssL out;
             // Extract the item hash and the label encryption key
             ecpt.extract_hash(out);
@@ -205,6 +206,7 @@ namespace PSI{
                 for(size_t idx = start_idx;idx < queries_number;idx+= step){
                     ECPointFourQ ecpt;
                     ecpt.load(queries[idx]);
+
                     ecpt.scalar_multiply(oprf_key_fourq, true);
                     ecpt.save(out[idx]);
 

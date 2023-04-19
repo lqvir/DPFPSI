@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(Unbalanced-PSI)
 
-
+set(CMAKE_TOOLCHAIN_FILE "/home/yuyu/liuqi/vcpkg/scripts/buildsystems/vcpkg.cmake")
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
@@ -11,7 +11,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     #add_compile_options("/MT")
 endif()
-
+string(REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+message(STATUS ${CMAKE_CXX_FLAGS_RELEASE})
 ####################
 # Dependencies     #
 ####################
@@ -27,32 +29,26 @@ set(CMAKE_CXX_STANDARD 20)
 # set_property(DIRECTORY PROPERTY EP_BASE ${CMAKE_BINARY_DIR}/subprojects)
 # set(STAGED_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/stage)
 # message(STATUS "${PROJECT_NAME} staged install: ${STAGED_INSTALL_PREFIX}")
+    set(
+        BOOST_ROOT ${CMAKE_CURRENT_LIST_DIR}/../boost-release
+        CACHE PATH "Path to internally built Boost installation root"
+        FORCE
+    )
+    message(${BOOST_ROOT})
+    set(
+        BOOST_INCLUDEDIR ${BOOST_ROOT}/include
+        CACHE PATH "Path to internally built Boost include directories"
+        FORCE
+    )
+    set(
+        BOOST_LIBRARYDIR ${BOOST_ROOT}/lib
+        CACHE PATH "Path to internally built Boost library directories"
+        FORCE
+    )
+list(APPEND BOOST_COMPONENTS_REQUIRED  system thread atomic regex date_time)
+find_package(Boost REQUIRED QUIET COMPONENTS system regex)
 
-list(APPEND BOOST_COMPONENTS_REQUIRED  system thread atomic regex data_time)
-find_package(Boost REQUIRED QUIET COMPONENTS system thread atomic regex date_time)
 
-# add_subdirectory(external/upstream)
-# include(ExternalProject)
-
-# ExternalProject_Add(${PROJECT_NAME}_core
-#   DEPENDS
-#       boost_external
-#   SOURCE_DIR
-#       ${CMAKE_CURRENT_LIST_DIR}/src
-#   CMAKE_ARGS
-#     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-#     -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
-#     -DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}
-#     -DCMAKE_CXX_STANDARD_REQUIRED=${CMAKE_CXX_STANDARD_REQUIRED}
-#   CMAKE_CACHE_ARGS
-#     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-#     -DCMAKE_INCLUDE_PATH:PATH=${BOOST_INCLUDEDIR}
-#     -DCMAKE_LIBRARY_PATH:PATH=${BOOST_LIBRARYDIR}
-#   BUILD_ALWAYS
-#       1
-#   INSTALL_COMMAND
-#       ""
-#   )
 
 ####################
 # Libs             #
@@ -110,6 +106,13 @@ if(MSVC)
     target_compile_options(psi PUBLIC -D__WINDOWS__)
 elseif (UNIX)
     target_compile_options(psi PUBLIC -D__LINUX__)
+endif()
+include(CheckLanguage)
+check_language(ASM)
+if(CMAKE_ASM_COMPILER)
+    enable_language(ASM)
+    target_compile_options(psi PUBLIC -D_ASM_)
+    message(STATUS "FourQlib optimization: asm=ON")
 endif()
 
 # set_target_properties(psi PROPERTIES LINK_FLAGS "-Wl,--stack,16777216")

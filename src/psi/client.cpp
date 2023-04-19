@@ -233,12 +233,17 @@ namespace PSI
         auto query = OPRFQueryThreadFourQ(input);
         chlsS[0].send(query);
         std::vector<OPRF::OPRFPointFourQ> response(client_set_size_);
-        chlsS[1].recv(response);
+        std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+
+        chlsS[0].recv(response);
+
         auto oprf_value = OPRFResponseThreadFourQ(response);
 
         clocks.setpoint("OPRFFinish");
 
         Cuckoo_All_location(oprf_value);
+        // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+
         std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
         std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
 
@@ -251,23 +256,25 @@ namespace PSI
 
         std::shared_ptr<PSI::DPF::DPFResponseList> ResponseS = std::make_shared<PSI::DPF::DPFResponseList>();
         std::shared_ptr<PSI::DPF::DPFResponseList> ResponseA = std::make_shared<PSI::DPF::DPFResponseList>();
-        chlsS[1].recv(reinterpret_cast<uint8_t*>(ResponseS.get()),sizeof(PSI::DPF::DPFResponseList));
-        chlsA[1].recv(reinterpret_cast<uint8_t*>(ResponseA.get()),sizeof(PSI::DPF::DPFResponseList));
+        chlsS[0].recv(reinterpret_cast<uint8_t*>(ResponseS.get()),sizeof(PSI::DPF::DPFResponseList));
+        chlsA[0].recv(reinterpret_cast<uint8_t*>(ResponseA.get()),sizeof(PSI::DPF::DPFResponseList));
 
         DictGen(ResponseS,ResponseA);
         InsectionCheck(oprf_value,input);
         clocks.setpoint("Finish");
 
         clocks.printTimePointRecord();
-        
+        size_t cnt = 0 ;
         for(auto chl : chlsS){
+            cnt += chl.getTotalDataSent() + chl.getTotalDataRecv();
             chl.close();
         }
 
         for(auto chl : chlsA){
+            cnt += chl.getTotalDataSent() + chl.getTotalDataRecv();
             chl.close();
         }
-
+        std::cout << "online com" << cnt / 1024.0/1024.0 <<std::endl;
         sessionS.stop();
         sessionA.stop();
         iosS.stop();

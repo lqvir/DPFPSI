@@ -210,19 +210,23 @@ namespace PSI{
             auto ProcessItemLambda = [&](size_t start_idx,size_t step) {
        
                 for(size_t idx = start_idx; idx < item_number; idx+= step){
-                   
-                    ECPointFourQ ecpt(oprf_items[idx].get_as<const unsigned char>());
+                    auto values = oprf_items[idx].get_as<const unsigned char>();
+                    // util::printchar((uint8_t*)values.data(),values.size());
+                    ECPointFourQ ecpt(values);
 
                     ECPointFourQ::scalar_type random_scalar;
                     ECPointFourQ::MakeRandomNonzeroScalar(random_scalar);
                     ECPointFourQ::InvertScalar(random_scalar, key_inv_fourq.at(idx));
 
+                    
                     // Multiply our point with the random scalar
                     ecpt.scalar_multiply(random_scalar, false);
-
+                    // ecpt.scalar_multiply(key_inv_fourq.at(idx),false);
                     // Save the result to items_buffer
                     ecpt.save(out[idx]);
-            
+                    
+              
+            // util::printchar(out[idx].data(),out[idx].size());
                 }
               
             };
@@ -255,6 +259,7 @@ namespace PSI{
         }
         std::vector<OPRFValueOpenssL> 
             OPRFReceiver::process_response_threadsFourQ(const std::vector<OPRFPointFourQ>& responses){
+        // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
             
             ThreadPoolMgr tpm;
             size_t responses_number = responses.size();
@@ -280,6 +285,7 @@ namespace PSI{
             for (auto &f : futures) {
                 f.get();
             }
+
             return out;
 
         }

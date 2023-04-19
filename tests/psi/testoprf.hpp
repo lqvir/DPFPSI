@@ -4,6 +4,7 @@
 #include "psi/oprf/dhoprf_receiver.h"
 #include "psi/common/thread_pool_mgr.h"
 #include "psi/common/item.h"
+
 #include <chrono>
 #include <vector>
 using namespace PSI::OPRF;
@@ -157,24 +158,33 @@ void test_OPRF_FourQ(){
     std::vector<PSI::Item> ReceiverSet;
 
     for(size_t idx = 0; idx < 16 ; idx ++){
-        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
-        ServerSet.emplace_back(0x123+idx,0x456*idx);   
+        ReceiverSet.emplace_back(0x123,0x456);
+        ServerSet.emplace_back(0x123,0x456);   
     }
     
     for(size_t idx = 0; idx < 1024 ; idx ++){
         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
     }
+
     auto value = oprfsender.ComputeHashesFourQ(ServerSet);
     
-    auto qurie = oprfreceier.process_itemsFourQ(ReceiverSet);
+    // auto qurie = oprfreceier.process_itemsFourQ(ReceiverSet);
+
     auto query = oprfreceier.process_items_threadsFourQ(ReceiverSet);
-    
+
+    // std::cout << __LINE__ << std::endl;
+    // PSI::util::printchar(query[0].data(),query[0].size());
     // for(size_t idx = 0; idx < query.size(); idx++){
     //     assert(query[idx] == qurie[idx]);
     // }
     
     auto response = oprfsender.ProcessQueriesThreadFourQ(query);
+    // std::cout << __LINE__ << std::endl;
+    // for(auto x: response){
+    //     PSI::util::printchar(x.data(),x.size());
+    // }
     auto rvalue = oprfreceier.process_response_threadsFourQ(response);
+
     for(auto x:value){
          PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
     }
