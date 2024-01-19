@@ -39,12 +39,12 @@ namespace PSI{
             BN_CTX_free(ctx_ecc);
         }
 
-        std::vector<OPRFPointOpenSSL> OPRFReceiver::process_items(std::span<const Item> oprf_items){
+        std::vector<OPRFPoint> OPRFReceiver::process_items(std::span<const Item> oprf_items){
             size_t item_number = oprf_items.size();
             BIGNUM* oprf_key = BN_new();      
             BIGNUM* item_bn = BN_new();
             EC_POINT* ItemPoint = EC_POINT_new(curve);
-            std::vector<OPRFPointOpenSSL> out(item_number);
+            std::vector<OPRFPoint> out(item_number);
             key_inv.resize(item_number);
 
 
@@ -77,13 +77,13 @@ namespace PSI{
             BN_free(item_bn);
             return out;
         }
-        std::vector<OPRFPointOpenSSL> OPRFReceiver::process_items_threads(std::span<const Item> oprf_items){
+        std::vector<OPRFPoint> OPRFReceiver::process_items_threads(std::span<const Item> oprf_items){
             ThreadPoolMgr tpm;
             size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), oprf_items.size());
             size_t item_number = oprf_items.size();
             
             std::vector<std::future<void>> futures(task_count);
-            std::vector<OPRFPointOpenSSL> out(item_number);
+            std::vector<OPRFPoint> out(item_number);
             key_inv.resize(item_number);
 
             auto ProcessItemLambda = [&](size_t start_idx,size_t step) {
@@ -115,7 +115,7 @@ namespace PSI{
             return out;
 
         }
-        std::vector<OPRFValueOpenssL> OPRFReceiver::process_response(const std::vector<OPRFPointOpenSSL>& responses){
+        std::vector<OPRFValueOpenssL> OPRFReceiver::process_response(const std::vector<OPRFPoint>& responses){
             size_t responses_number = responses.size();
             std::vector<OPRFValueOpenssL> out(responses_number);
             EC_POINT* temp = EC_POINT_new(curve);
@@ -135,7 +135,7 @@ namespace PSI{
 
 
         }
-        std::vector<OPRFValueOpenssL> OPRFReceiver::process_response_threads(const std::vector<OPRFPointOpenSSL>& responses){
+        std::vector<OPRFValueOpenssL> OPRFReceiver::process_response_threads(const std::vector<OPRFPoint>& responses){
             ThreadPoolMgr tpm;
             size_t responses_number = responses.size();
             size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), responses_number);
@@ -220,7 +220,9 @@ namespace PSI{
 
                     
                     // Multiply our point with the random scalar
-                    ecpt.scalar_multiply(random_scalar, false);
+                    if(!ecpt.scalar_multiply(random_scalar, false)){
+                        std::cout << __FILE__ << __LINE__ << std::endl;
+                    };
                     // ecpt.scalar_multiply(key_inv_fourq.at(idx),false);
                     // Save the result to items_buffer
                     ecpt.save(out[idx]);
@@ -265,12 +267,14 @@ namespace PSI{
             size_t responses_number = responses.size();
             size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), responses_number);
             std::vector<std::future<void>> futures(task_count);
+                    std::vector<OPRFPointFourQ> outs(responses_number);
             
             std::vector<OPRFValueOpenssL> out(responses_number);
             auto ProcessResponseLambda = [&](size_t start_idx,size_t step){
                 for(size_t idx = start_idx; idx < responses_number ;idx += step){
                     ECPointFourQ ecpt;
                     ecpt.load(responses[idx]);
+
                     // Multiply with inverse random scalar
                     ecpt.scalar_multiply(key_inv_fourq[idx], false);
                     ecpt.extract_hash(out[idx]);

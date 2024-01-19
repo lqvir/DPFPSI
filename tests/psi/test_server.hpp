@@ -4,7 +4,7 @@
 #include "psi/server.h"
 #include "psi/client.h"
 #include "psi/common/stopwatch.h"
-
+#include <algorithm>
 void test_server(){
     std::vector<PSI::Item> items;
     items.emplace_back(0x123,0x456);
@@ -497,8 +497,8 @@ void Test3(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    size_t Rsize = 11041;
-    size_t Ssize = 1048576;
+    size_t Rsize = 4096;
+    size_t Ssize = 16777216;
     std::vector<PSI::Label> label(Ssize);
     for(size_t idx = 0;idx < Ssize; idx++){
         uint64_t temp[2];
@@ -512,6 +512,7 @@ void Test3(){
         RAND_bytes((uint8_t*)temp,16);
         ReceiverSet.emplace_back(temp[0],temp[1]);
     }
+    ReceiverSet[0] = ServerSet[0];
     for(size_t idx = 0; idx < 32;idx++){
         ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
     }

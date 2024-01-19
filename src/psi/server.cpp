@@ -170,10 +170,10 @@ namespace PSI
             return hash_table;
 
         }
-        std::vector<OPRF::OPRFPointOpenSSL>  PSIServer::process_query(const std::vector<OPRF::OPRFPointOpenSSL>& input){
+        std::vector<OPRF::OPRFPoint>  PSIServer::process_query(const std::vector<OPRF::OPRFPoint>& input){
             return DHOPRFSender.ProcessQueries(input);
         }
-        std::vector<OPRF::OPRFPointOpenSSL>  PSIServer::process_query_thread(const std::vector<OPRF::OPRFPointOpenSSL>& input){
+        std::vector<OPRF::OPRFPoint>  PSIServer::process_query_thread(const std::vector<OPRF::OPRFPoint>& input){
             return DHOPRFSender.ProcessQueriesThread(input);
         }
 

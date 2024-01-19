@@ -23,10 +23,10 @@ namespace PSI{
             ~OPRFReceiver();
 
             int init();
-            std::vector<OPRFPointOpenSSL> process_items(std::span<const Item> oprf_items);
-            std::vector<OPRFPointOpenSSL> process_items_threads(std::span<const Item> oprf_items);
-            std::vector<OPRFValueOpenssL> process_response(const std::vector<OPRFPointOpenSSL>& responses);
-            std::vector<OPRFValueOpenssL> process_response_threads(const std::vector<OPRFPointOpenSSL>& responses);
+            std::vector<OPRFPoint> process_items(std::span<const Item> oprf_items);
+            std::vector<OPRFPoint> process_items_threads(std::span<const Item> oprf_items);
+            std::vector<OPRFValueOpenssL> process_response(const std::vector<OPRFPoint>& responses);
+            std::vector<OPRFValueOpenssL> process_response_threads(const std::vector<OPRFPoint>& responses);
         
             std::vector<OPRFPointFourQ> 
                 process_itemsFourQ(std::span<const Item> oprf_items);

@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(Unbalanced-PSI)
 
-set(CMAKE_TOOLCHAIN_FILE "/home/yuyu/liuqi/vcpkg/scripts/buildsystems/vcpkg.cmake")
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
@@ -11,17 +10,18 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     #add_compile_options("/MT")
 endif()
-string(REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-message(STATUS ${CMAKE_CXX_FLAGS_RELEASE})
+# string(REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+# string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+# message(STATUS ${CMAKE_CXX_FLAGS_RELEASE})
 ####################
 # Dependencies     #
 ####################
+message(${VCPKG_TARGET_TRIPLET})
+
 find_package(Kuku REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Microsoft.GSL REQUIRED)
 # find_package(Boost REQUIRED)
-message(${VCPKG_TARGET_TRIPLET})
 set(CMAKE_CXX_STANDARD 20)
 # set(CMAKE_CXX_EXTENSIONS OFF)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -154,6 +154,9 @@ psi_install_target(psi psiTargets)
 
 # FetchContent_MakeAvailable(Catch2)
 # include(Catch)
+
+find_package(OpenMP REQUIRED) 
+
 add_executable(psitest)
 
 set(PSI_TEST_FILES "")
@@ -162,6 +165,7 @@ add_subdirectory(tests/psi)
 target_sources(psitest PRIVATE ${PSI_TEST_FILES})
 
 target_link_libraries(psitest PRIVATE psi)
+target_link_libraries(psitest PRIVATE OpenMP::OpenMP_CXX)
 # target_link_libraries(psitest PRIVATE Catch2::Catch2WithMain)
 # catch_discover_tests(psitest)
 

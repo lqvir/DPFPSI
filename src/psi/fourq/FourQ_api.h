@@ -27,7 +27,7 @@ extern "C" {
 void eccset(point_t G);
 
 // Variable-base scalar multiplication Q = k*P
-bool ecc_mul(point_t P, digit_t *k, point_t Q, bool clear_cofactor);
+bool ecc_mul(point_t P, digit_t *k, point_t Q, bool clear_cofactor) ;
 
 // Fixed-base scalar multiplication Q = k*G, where G is the generator
 bool ecc_mul_fixed(digit_t *k, point_t Q);

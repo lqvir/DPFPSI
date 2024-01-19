@@ -67,16 +67,16 @@ namespace PSI
                 // Create an elliptic curve point
                 HashToCurve(r, pt_);
 
-                // point_t pt_copy{ pt_[0] };
-                // point_extproj_t R;
-                // point_setup(pt_copy, R);
-                // if (ecc_point_validate(R) == false) {
-                //     fpneg1271(R->x[1]);
-                //     fpcopy1271(R->x[1], pt_copy->x[1]);
-                //     if (ecc_point_validate(R) == false) { // Final point validation
-                //         std::cout << "error" << std::endl;
-                //     }
-                // }
+                point_t pt_copy{ pt_[0] };
+                point_extproj_t R;
+                point_setup(pt_copy, R);
+                if (ecc_point_validate(R) == false) {
+                    fpneg1271(R->x[1]);
+                    fpcopy1271(R->x[1], pt_copy->x[1]);
+                    if (ecc_point_validate(R) == false) { // Final point validation
+                        std::cout << "error" << std::endl;
+                    }
+                }
             }
         }
 

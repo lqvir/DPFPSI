@@ -21,10 +21,10 @@ namespace PSI{
             public:
                 PSIClient() = default;
                 PSIClient(size_t client_set_size):client_set_size_(client_set_size){};
-                std::vector<OPRF::OPRFPointOpenSSL> OPRFQuery(const std::vector<Item>& input);
-                std::vector<OPRF::OPRFPointOpenSSL> OPRFQueryThread(const std::vector<Item>& input);
-                std::vector<OPRF::OPRFValueOpenssL> OPRFResponse(const std::vector<OPRF::OPRFPointOpenSSL>& response);
-                std::vector<OPRF::OPRFValueOpenssL> OPRFResponseThread(const std::vector<OPRF::OPRFPointOpenSSL>& response);
+                std::vector<OPRF::OPRFPoint> OPRFQuery(const std::vector<Item>& input);
+                std::vector<OPRF::OPRFPoint> OPRFQueryThread(const std::vector<Item>& input);
+                std::vector<OPRF::OPRFValueOpenssL> OPRFResponse(const std::vector<OPRF::OPRFPoint>& response);
+                std::vector<OPRF::OPRFValueOpenssL> OPRFResponseThread(const std::vector<OPRF::OPRFPoint>& response);
 
                 std::vector<OPRF::OPRFPointFourQ> OPRFQueryFourQ(const std::vector<Item>& input);
                 std::vector<OPRF::OPRFPointFourQ> OPRFQueryThreadFourQ(const std::vector<Item>& input);

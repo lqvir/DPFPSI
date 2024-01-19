@@ -227,8 +227,8 @@ ECCRYPTO_STATUS HashToCurve(f2elm_t r, point_t out)
     // Clear cofactor
     point_extproj_t P;
     point_setup(out, P);
-    // cofactor_clearing(P);
-    // eccnorm(P, out);
+    cofactor_clearing(P);
+    eccnorm(P, out);
 
     return ECCRYPTO_SUCCESS;
 }

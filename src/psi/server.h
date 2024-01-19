@@ -23,8 +23,8 @@ namespace PSI
             };
             std::vector<LabelMask> init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
             std::vector<LabelMask> init_FourQ(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
-            std::vector<OPRF::OPRFPointOpenSSL> process_query(const std::vector<OPRF::OPRFPointOpenSSL>& input);
-            std::vector<OPRF::OPRFPointOpenSSL> process_query_thread(const std::vector<OPRF::OPRFPointOpenSSL>& input);
+            std::vector<OPRF::OPRFPoint> process_query(const std::vector<OPRF::OPRFPoint>& input);
+            std::vector<OPRF::OPRFPoint> process_query_thread(const std::vector<OPRF::OPRFPoint>& input);
             std::vector<OPRF::OPRFPointFourQ> process_queryFourQ(std::vector<OPRF::OPRFPointFourQ>& input);
             std::vector<OPRF::OPRFPointFourQ> process_query_threadFourQ(std::vector<OPRF::OPRFPointFourQ>& input);
 

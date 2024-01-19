@@ -21,8 +21,8 @@ namespace PSI{
             int init();
             OPRFValueOpenssL ComputeItemHash(const Item &item,BN_CTX* ctx = NULL);
             std::vector<OPRFValueOpenssL> ComputeHashes(const std::span<const Item> &oprf_item);
-            std::vector<OPRFPointOpenSSL> ProcessQueries(const std::vector<OPRFPointOpenSSL> &queries);
-            std::vector<OPRFPointOpenSSL> ProcessQueriesThread(const std::vector<OPRFPointOpenSSL> &queries);
+            std::vector<OPRFPoint> ProcessQueries(const std::vector<OPRFPoint> &queries);
+            std::vector<OPRFPoint> ProcessQueriesThread(const std::vector<OPRFPoint> &queries);
             OPRFValueOpenssL ComputeItemHashFourQ(const Item &item);
             std::vector<OPRFValueOpenssL> ComputeHashesFourQ(const std::span<const Item> &oprf_items);
             std::vector<OPRFPointFourQ> 

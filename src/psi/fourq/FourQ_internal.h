@@ -333,7 +333,7 @@ void fp2sqr1271(f2elm_t a, f2elm_t c);
 void fp2sqr1271_a(f2elm_t a, f2elm_t c);
 
 // Quadratic extension field inversion, af = a^-1 = a^(p-2) in GF((2^127-1)^2)
-void fp2inv1271(f2elm_t a);
+void fp2inv1271(f2elm_t a) __attribute__((optimize("O1")));
 
 /************ Curve and recoding functions *************/
 
@@ -400,7 +400,7 @@ void point_setup(point_t P, point_extproj_t Q);
 void point_setup_ni(point_t P, point_extproj_t Q);
 
 // Point validation: check if point lies on the curve
-bool ecc_point_validate(point_extproj_t P);
+bool ecc_point_validate(point_extproj_t P) __attribute__((optimize("O1")));
 
 // Output error/success message for a given ECCRYPTO_STATUS
 const char *FourQ_get_error_message(ECCRYPTO_STATUS Status);

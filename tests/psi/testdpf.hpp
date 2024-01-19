@@ -51,7 +51,7 @@ void test_GenTree(){
     PSI::DPF::DPFKeyEarlyTerminal key00,key01;
     test.Gen(23,1,key00,key01);
     PSI::DPF::DPFKeyEarlyTerminal_ByArray key000,key001;
-    test.Gen(170,1,key000,key001);
+    test.Gen(23,1,key000,key001);
 
     auto tree0e = server.DPFGenTree(key00);
     auto tree1e = aid.DPFGenTree(key01);

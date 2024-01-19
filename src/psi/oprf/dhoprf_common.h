@@ -17,7 +17,7 @@ namespace PSI{
         constexpr size_t POINT_COMPRESSED_BYTE_LEN = 33;
         constexpr  int curve_id = NID_X9_62_prime256v1 ;
         typedef std::array<uint8_t,oprf_value_bytes> OPRFValueOpenssL;
-        typedef std::array<uint8_t,POINT_COMPRESSED_BYTE_LEN> OPRFPointOpenSSL;
+        typedef std::array<uint8_t,POINT_COMPRESSED_BYTE_LEN> OPRFPoint;
         #define BasicHash(input, HASH_INPUT_LEN, output) SHA256(input, HASH_INPUT_LEN, output)
        
         inline void MakeRandomNonzeroScalar(BIGNUM* out,const BIGNUM* range){

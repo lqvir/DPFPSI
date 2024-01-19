@@ -97,9 +97,9 @@ namespace PSI{
             }
             return oprf_hashes;
         }
-        std::vector<OPRFPointOpenSSL> OPRFSender::ProcessQueries(const std::vector<OPRFPointOpenSSL> &queries){
+        std::vector<OPRFPoint> OPRFSender::ProcessQueries(const std::vector<OPRFPoint> &queries){
             auto queries_number = queries.size();
-            std::vector<OPRFPointOpenSSL> out;
+            std::vector<OPRFPoint> out;
             EC_POINT* temp = EC_POINT_new(curve);
             for(auto idx = 0 ; idx < queries_number ; idx ++){
                 EC_POINT_oct2point(curve,temp,(uint8_t*)queries.at(idx).data(),POINT_COMPRESSED_BYTE_LEN,ctx_b);
@@ -116,12 +116,12 @@ namespace PSI{
 
             return out;
         }
-        std::vector<OPRFPointOpenSSL> OPRFSender::ProcessQueriesThread(const std::vector<OPRFPointOpenSSL> &queries){
+        std::vector<OPRFPoint> OPRFSender::ProcessQueriesThread(const std::vector<OPRFPoint> &queries){
             ThreadPoolMgr tpm;
             size_t queries_number = queries.size();
             size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), queries_number);
             std::vector<std::future<void>> futures(task_count);
-            std::vector<OPRFPointOpenSSL> out(queries_number);
+            std::vector<OPRFPoint> out(queries_number);
 
             auto ProcessQueriesLambda = [&](size_t start_idx,size_t step){
                 BN_CTX* ctx = BN_CTX_new();
@@ -207,7 +207,9 @@ namespace PSI{
                     ECPointFourQ ecpt;
                     ecpt.load(queries[idx]);
 
-                    ecpt.scalar_multiply(oprf_key_fourq, true);
+                    if(!ecpt.scalar_multiply(oprf_key_fourq, true)){
+                        printf("%d\n",__LINE__);
+                    };
                     ecpt.save(out[idx]);
 
                        // std::cout<<len<<std::endl;

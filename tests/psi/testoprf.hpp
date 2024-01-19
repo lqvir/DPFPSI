@@ -237,3 +237,37 @@ void test_to_ECPOINT(){
 
     }
 }
+
+void test_fourQ(){
+    PSI::Item cont(0,1);
+    ECPointFourQ ecpt(cont.get_as<uint8_t>());
+    std::array<uint8_t,32> out;
+    ecpt.save(out);
+    PSI::util::printchar(out.data(),out.size());
+    ECPointFourQ ecpt1;
+    ecpt1.load(out);
+    ECPointFourQ::scalar_type random_scalar;
+    ECPointFourQ::scalar_type oprf_key;
+    ECPointFourQ::MakeRandomNonzeroScalar(random_scalar);
+    ECPointFourQ::MakeRandomNonzeroScalar(oprf_key);
+
+    ECPointFourQ::scalar_type random_scalar_inv;
+    ECPointFourQ::InvertScalar(random_scalar,random_scalar_inv);
+
+    bool ans = ecpt1.scalar_multiply(random_scalar, false);
+    if(!ans){
+        printf("??");
+    }
+
+    ans = ecpt1.scalar_multiply(oprf_key, true);
+    if(!ans){
+        printf("??");
+    }
+
+    ans = ecpt1.scalar_multiply(random_scalar_inv, false);
+    if(!ans){
+        printf("??");
+    }
+    ecpt1.save(out);
+    PSI::util::printchar(out.data(),out.size());
+}

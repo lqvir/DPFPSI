@@ -4,6 +4,7 @@
 #include "test_server.hpp"
 #include "test_stopwatch.hpp"
 #include "test_network.hpp"
+#include "test_cuckoohash.hpp"
 // #include "catch2/catch_test_macros.hpp"
 // static int Factorial( int number ) {
 //    return number <= 1 ? number : Factorial( number - 1 ) * number;  // fail
@@ -22,7 +23,7 @@
 // }
 
 int main(){
-    PSI::ThreadPoolMgr::SetThreadCount(4);
+    PSI::ThreadPoolMgr::SetThreadCount(1);
     PSI::StopWatch clock1("All time ");
     clock1.setpoint("start");
     // Test0();

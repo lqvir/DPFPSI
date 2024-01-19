@@ -8,21 +8,21 @@ namespace PSI
 {
     namespace Client
     {
-        std::vector<OPRF::OPRFPointOpenSSL> PSIClient::OPRFQuery(const std::vector<Item>& input){
+        std::vector<OPRF::OPRFPoint> PSIClient::OPRFQuery(const std::vector<Item>& input){
             DHOPRFReceiver.init();
             auto OPRFQuery = DHOPRFReceiver.process_items(input);
             return OPRFQuery;
         }
-        std::vector<OPRF::OPRFPointOpenSSL> PSIClient::OPRFQueryThread(const std::vector<Item>& input){
+        std::vector<OPRF::OPRFPoint> PSIClient::OPRFQueryThread(const std::vector<Item>& input){
             DHOPRFReceiver.init();
             auto OPRFQuery = DHOPRFReceiver.process_items_threads(input);
             return OPRFQuery;
         }
-        std::vector<OPRF::OPRFValueOpenssL> PSIClient::OPRFResponse(const std::vector<OPRF::OPRFPointOpenSSL>& response){
+        std::vector<OPRF::OPRFValueOpenssL> PSIClient::OPRFResponse(const std::vector<OPRF::OPRFPoint>& response){
             auto output = DHOPRFReceiver.process_response(response);
             return output;
         }
-        std::vector<OPRF::OPRFValueOpenssL> PSIClient::OPRFResponseThread(const std::vector<OPRF::OPRFPointOpenSSL>& response){
+        std::vector<OPRF::OPRFValueOpenssL> PSIClient::OPRFResponseThread(const std::vector<OPRF::OPRFPoint>& response){
             auto output = DHOPRFReceiver.process_response_threads(response);
             return output;
         }
