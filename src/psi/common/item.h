@@ -136,6 +136,8 @@ class ItemTmpl {
 
     
     using Item = ItemTmpl<std::array<uint8_t,Item_byte_size>>;
+
+    
     using Label = ItemTmpl<std::array<uint8_t,Label_byte_size>>;
     using LabelMask = ItemTmpl<std::array<uint8_t,Mask_byte_size>>;
 

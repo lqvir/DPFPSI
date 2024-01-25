@@ -21,23 +21,23 @@ namespace PSI{
             public:
                 PSIClient() = default;
                 PSIClient(size_t client_set_size):client_set_size_(client_set_size){};
-                std::vector<OPRF::OPRFPoint> OPRFQuery(const std::vector<Item>& input);
-                std::vector<OPRF::OPRFPoint> OPRFQueryThread(const std::vector<Item>& input);
-                std::vector<OPRF::OPRFValueOpenssL> OPRFResponse(const std::vector<OPRF::OPRFPoint>& response);
-                std::vector<OPRF::OPRFValueOpenssL> OPRFResponseThread(const std::vector<OPRF::OPRFPoint>& response);
+                std::vector<DHOPRF::OPRFPoint> OPRFQuery(const std::vector<Item>& input);
+                std::vector<DHOPRF::OPRFPoint> OPRFQueryThread(const std::vector<Item>& input);
+                std::vector<DHOPRF::OPRFValueOpenssL> OPRFResponse(const std::vector<DHOPRF::OPRFPoint>& response);
+                std::vector<DHOPRF::OPRFValueOpenssL> OPRFResponseThread(const std::vector<DHOPRF::OPRFPoint>& response);
 
-                std::vector<OPRF::OPRFPointFourQ> OPRFQueryFourQ(const std::vector<Item>& input);
-                std::vector<OPRF::OPRFPointFourQ> OPRFQueryThreadFourQ(const std::vector<Item>& input);
-                std::vector<OPRF::OPRFValueOpenssL> OPRFResponseFourQ(const std::vector<OPRF::OPRFPointFourQ>& response);
-                std::vector<OPRF::OPRFValueOpenssL> OPRFResponseThreadFourQ(const std::vector<OPRF::OPRFPointFourQ>& response);
-                void Cuckoo_All_location(const std::vector<OPRF::OPRFValueOpenssL>& oprf_input);
-                void DPFGen(
-                    DPF::DPFKeyList& Ks,DPF::DPFKeyList& Ka
-                );
-                void DPFGen(
-                    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ks,
-                    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ka
-                );
+                std::vector<DHOPRF::OPRFPointFourQ> OPRFQueryFourQ(const std::vector<Item>& input);
+                std::vector<DHOPRF::OPRFPointFourQ> OPRFQueryThreadFourQ(const std::vector<Item>& input);
+                std::vector<DHOPRF::OPRFValueOpenssL> OPRFResponseFourQ(const std::vector<DHOPRF::OPRFPointFourQ>& response);
+                std::vector<DHOPRF::OPRFValueOpenssL> OPRFResponseThreadFourQ(const std::vector<DHOPRF::OPRFPointFourQ>& response);
+                void Cuckoo_All_location(const std::vector<DHOPRF::OPRFValueOpenssL>& oprf_input);
+                // void DPFGen(
+                //     DPF::DPFKeyList& Ks,DPF::DPFKeyList& Ka
+                // );
+                // void DPFGen(
+                //     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ks,
+                //     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ka
+                // );
               void DPFGen(
                     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ks,
                     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ka
@@ -49,13 +49,13 @@ namespace PSI{
                     std::shared_ptr<DPF::DPFResponseList> ResponseListFromA
                 );
 
-                void InsectionCheck(std::vector<OPRF::OPRFValueOpenssL>& oprf_input,const std::vector<Item>& input);
+                void InsectionCheck(std::vector<DHOPRF::OPRFValueOpenssL>& oprf_input,const std::vector<Item>& input);
 
                 void run(std::string ServerAddress,std::string AidServerAddress,std::unique_ptr<std::vector<Item>> input);
                 void run(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input);
                 
             private:
-                OPRF::OPRFReceiver DHOPRFReceiver;
+                DHOPRF::OPRFReceiver DHOPRFReceiver;
                 size_t client_set_size_;
                 std::vector<std::vector<size_t>> IndexSets_by_block; 
                 DPF::dpf_server DPFServer;

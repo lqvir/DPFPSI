@@ -4,6 +4,7 @@
 # Source files in this directory
 
 if(HAVE_AVX2_EXTENSIONS)
+    message(STATUS "AVX2")
     set(PSI_SOURCE_FILES ${PSI_SOURCE_FILES}
         ${CMAKE_CURRENT_LIST_DIR}/consts.c
         ${CMAKE_CURRENT_LIST_DIR}/fp2_1271_AVX2.S

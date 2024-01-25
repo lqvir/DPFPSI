@@ -75,9 +75,11 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 
 set(PSI_SOURCE_FILES "")
-add_subdirectory(src/psi)
+
 
 add_library(psi)
+add_executable(psitest)
+
 include(DetectArch)
 if(PSI_FOURQ_AMD64)
     target_compile_options(psi PUBLIC -D_AMD64_)
@@ -115,21 +117,28 @@ if(CMAKE_ASM_COMPILER)
     message(STATUS "FourQlib optimization: asm=ON")
 endif()
 
+
+add_subdirectory(src/psi)
+add_subdirectory(mobile_psi_cpp)
 # set_target_properties(psi PROPERTIES LINK_FLAGS "-Wl,--stack,16777216")
 
 # include_directories(
 #     ${OPENSSL_INCLUDE_DIR}
 # )
 target_include_directories(psi PUBLIC ${OPENSSL_INCLUDE_DIR})
+target_include_directories(psi PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mobile_psi_cpp)
+
+
 target_link_libraries(psi 
     PRIVATE OpenSSL::Crypto 
     PUBLIC Microsoft.GSL::GSL
     PUBLIC Kuku::kuku
+    PUBLIC droidcrypto
     )
 target_link_libraries(psi
     PUBLIC Boost::boost Boost::regex Boost::system
 )
-target_sources(psi PRIVATE ${PSI_SOURCE_FILES})
+target_sources(psi PUBLIC ${PSI_SOURCE_FILES})
 
 target_include_directories(psi PUBLIC
     $<BUILD_INTERFACE:${PSI_INCLUDES_DIR}>
@@ -157,7 +166,6 @@ psi_install_target(psi psiTargets)
 
 find_package(OpenMP REQUIRED) 
 
-add_executable(psitest)
 
 set(PSI_TEST_FILES "")
 add_subdirectory(tests/psi)

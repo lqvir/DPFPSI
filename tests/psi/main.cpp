@@ -23,7 +23,7 @@
 // }
 
 int main(){
-    PSI::ThreadPoolMgr::SetThreadCount(1);
+    PSI::ThreadPoolMgr::SetThreadCount(16);
     PSI::StopWatch clock1("All time ");
     clock1.setpoint("start");
     // Test0();

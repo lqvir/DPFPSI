@@ -127,58 +127,58 @@ void testXor(){
 
 
 
-void test_unbanlancedFullEval(){
+// void test_unbanlancedFullEval(){
 
-    std::vector<PSI::Item> ServerSet;
-    std::vector<PSI::Item> ReceiverSet;
+//     std::vector<PSI::Item> ServerSet;
+//     std::vector<PSI::Item> ReceiverSet;
 
-    for(size_t idx = 0; idx < 16 ; idx ++){
-        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
-        ServerSet.emplace_back(0x123+idx,0x456*idx);   
-    }
+//     for(size_t idx = 0; idx < 16 ; idx ++){
+//         ReceiverSet.emplace_back(0x123+idx,0x456*idx);
+//         ServerSet.emplace_back(0x123+idx,0x456*idx);   
+//     }
     
-    for(size_t idx = 0; idx < 65520 ; idx ++){
-        ServerSet.emplace_back(0x789+idx,0xABC*idx);   
-    }
+//     for(size_t idx = 0; idx < 65520 ; idx ++){
+//         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
+//     }
 
-    for(auto x:ServerSet){
-        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-    }
-    for(auto x:ReceiverSet){
-        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-    }
-    auto sender_size = ServerSet.size();
-    auto receiver_size = ReceiverSet.size();
-    std::vector<PSI::Label> label(sender_size);
-    std::string label_m("00000");
-    for(size_t idx = 0 ; idx < sender_size ; idx ++){
-        label[idx] = label_m;
-        label_m[0] += 1;
+//     for(auto x:ServerSet){
+//         PSI::util::printchar(x.get_as<uint8_t>().data(),16);
+//     }
+//     for(auto x:ReceiverSet){
+//         PSI::util::printchar(x.get_as<uint8_t>().data(),16);
+//     }
+//     auto sender_size = ServerSet.size();
+//     auto receiver_size = ReceiverSet.size();
+//     std::vector<PSI::Label> label(sender_size);
+//     std::string label_m("00000");
+//     for(size_t idx = 0 ; idx < sender_size ; idx ++){
+//         label[idx] = label_m;
+//         label_m[0] += 1;
         
-    }
+//     }
 
-    PSI::Server::PSIServer server(sender_size);
-    PSI::Client::PSIClient client(receiver_size);
-    PSI::AidServer::AidServer aidserver;
+//     PSI::Server::PSIServer server(sender_size);
+//     PSI::Client::PSIClient client(receiver_size);
+//     PSI::AidServer::AidServer aidserver;
 
-    auto hash_table = server.init(ServerSet,label);
+//     auto hash_table = server.init(ServerSet,label);
     
-    auto query = client.OPRFQuery(ReceiverSet);
-    auto response = server.process_query(query);
-    auto value = client.OPRFResponse(response);
-    client.Cuckoo_All_location(value);
-    PSI::DPF::DPFKeyList ks,ka;
-    client.DPFGen(ks,ka);
+//     auto query = client.OPRFQuery(ReceiverSet);
+//     auto response = server.process_query(query);
+//     auto value = client.OPRFResponse(response);
+//     client.Cuckoo_All_location(value);
+//     PSI::DPF::DPFKeyList ks,ka;
+//     client.DPFGen(ks,ka);
 
 
-    auto response_s = server.DPFShareFullEval(ks);
-    auto response_a = aidserver.DPFShareFullEval(ka,hash_table);
+//     auto response_s = server.DPFShareFullEval(ks);
+//     auto response_a = aidserver.DPFShareFullEval(ka,hash_table);
 
-    //client.DictGen(response_s,response_a);
-    //client.InsectionCheck(value,ReceiverSet);
+//     //client.DictGen(response_s,response_a);
+//     //client.InsectionCheck(value,ReceiverSet);
 
 
-}
+// }
 
 void test_early_terminal(){
     PSI::StopWatch clocks("early");
@@ -497,8 +497,8 @@ void Test3(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    size_t Rsize = 4096;
-    size_t Ssize = 16777216;
+    size_t Rsize = 1;
+    size_t Ssize = 1048576;
     std::vector<PSI::Label> label(Ssize);
     for(size_t idx = 0;idx < Ssize; idx++){
         uint64_t temp[2];
@@ -513,9 +513,9 @@ void Test3(){
         ReceiverSet.emplace_back(temp[0],temp[1]);
     }
     ReceiverSet[0] = ServerSet[0];
-    for(size_t idx = 0; idx < 32;idx++){
-        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
-    }
+    // for(size_t idx = 0; idx < 32;idx++){
+    //     ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    // }
     PSI::Server::PSIServer server(Ssize);
     
     auto lambdaClient = [&](){

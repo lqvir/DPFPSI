@@ -12,7 +12,7 @@
 #include "psi/common/utils.h"
 namespace PSI
 {
-    namespace OPRF
+    namespace DHOPRF
     {
         namespace {
            void random_scalar(ECPointFourQ::scalar_span_type value){

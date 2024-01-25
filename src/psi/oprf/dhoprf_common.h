@@ -10,7 +10,7 @@
 #include "psi/common/utils.h"
 #include "psi/param.h"
 namespace PSI{
-    namespace OPRF{
+    namespace DHOPRF{
         constexpr size_t oprf_key_size = 128;
         constexpr size_t oprf_key_bytes = 16;
         constexpr size_t oprf_value_bytes = oprf_key_bytes + Leading_zero_length + Label_byte_size;

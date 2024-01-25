@@ -14,7 +14,7 @@
 #include "psi/fourq/FourQ.h"
 
 namespace PSI{
-    namespace OPRF
+    namespace DHOPRF
     {
         class ECPointFourQ{
         public:

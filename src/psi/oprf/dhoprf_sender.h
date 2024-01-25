@@ -10,7 +10,7 @@
 #include "psi/fourq/FourQ.h"
 #include "ecpoint_openssl.h"
 namespace PSI{
-    namespace OPRF{
+    namespace DHOPRF{
 
         class OPRFSender {
         public:

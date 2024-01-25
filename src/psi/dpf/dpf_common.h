@@ -47,83 +47,12 @@ namespace PSI
         typedef  std::array<std::array<DPF::DPFKeyEarlyTerminal_ByArray,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyEarlyTerminal_ByArrayList; 
         
         
-        
-        struct DPFKey
-        {
-            /* data */
-            std::bitset<Lambda>  share;
-            std::array<std::bitset<Lambda>,DPF_INPUT_BIT_SIZE - 1> cw;
-            std::bitset<Lambda+1> cw_n;
-            uint8_t cw_n_plus_1;
-            DPFKey(){
-                this->share = 0;
-                for(auto x : cw){
-                    x = 0;
-                }
-                cw_n = 0;
-                cw_n_plus_1 = 0;
-            }
-            inline void RandomKey();
-        };
-
-        inline void DPFKey::RandomKey(){
-            const size_t all_len = Lambda_bytes*(DPF_INPUT_BIT_SIZE+1)+2;
-            uint8_t buffer[all_len];
-            RAND_bytes(buffer,all_len);
-            std::stringstream ss;
-            for(auto x : buffer){
-                ss << std::bitset<8>(x);
-            }
-            ss >> this->share;
-            for(size_t idx = 0; idx < DPF_INPUT_BIT_SIZE - 1; idx++){
-                ss >> this->cw.at(idx);
-            }
-            ss >> cw_n;
-            this->cw_n_plus_1 = buffer[all_len-1];
-        }
-        
-        typedef  std::array<std::array<DPF::DPFKey,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyList; 
+         // typedef  std::array<std::array<DPF::DPFKey,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyList; 
         typedef std::array<DPFResponse ,cuckoo::block_num> DPFResponseList;
         // typedef std::array<uint8_t,((size_t)1<<DPF_INPUT_BIT_SIZE)> pcGGMLeafList;
 
        
-        struct DPFKeyEarlyTerminal
-        {
-            /* data */
-            std::bitset<Lambda>  share;
-            std::array<std::bitset<Lambda>,DPF_EAYLY_HIGH - 1> cw;
-            std::bitset<Lambda+1> cw_n;
-            std::bitset<DPF_COMPRESS_NODES_NUMBER> cw_n_1;
-            DPFKeyEarlyTerminal(){
-                share = 0;
-                for(auto x : cw){
-                    x = 0;
-                }
-                cw_n = 0;
-                cw_n_1 = 0;
-            }
-            inline void RandomKey();
-        };
-
-        inline void DPFKeyEarlyTerminal::RandomKey(){
-            const size_t all_len = Lambda_bytes*(DPF_EARLY_BIT_SIZE+2)+2;
-            uint8_t buffer[all_len];
-            RAND_bytes(buffer,all_len);
-            std::stringstream ss;
-            for(auto x : buffer){
-                ss << std::bitset<8>(x);
-            }
-            ss >> this->share;
-            for(size_t idx = 0; idx < DPF_EAYLY_HIGH - 1; idx++){
-                ss >> this->cw.at(idx);
-            }
-            ss >> cw_n;
-            ss >> cw_n_1;
-        }
-
-
-        typedef  std::array<std::array<DPF::DPFKeyEarlyTerminal,cuckoo::max_set_size>,cuckoo::block_num> DPFKeyEarlyTerminalList; 
-
+ 
         typedef std::bitset<((size_t)1 << DPF_INPUT_BIT_SIZE)> pcGGMLeafList;
 
 
@@ -139,20 +68,7 @@ namespace PSI
         inline Item sigma(const Item& in){
             return Item(in.get_as<uint64_t>()[0]^in.get_as<uint64_t>()[1],in.get_as<uint64_t>()[0]);
         }
-        inline void to_Bitset(std::bitset<Lambda>& out, uint8_t* in){
-            uint64_t* temp = (uint64_t*) in;
-            std::stringstream ss;
-            ss << std::bitset<64>(temp[0]).to_string() << std::bitset<64>(temp[1]).to_string();
-            ss >> out;
-        }
-
-        inline void Random_Bitset(std::bitset<Lambda>& in){
-            uint64_t temp[2];
-            RAND_bytes((uint8_t*)temp,16);
-            std::stringstream ss;
-            ss << std::bitset<64>(temp[0]).to_string() << std::bitset<64>(temp[1]).to_string();
-            ss >> in;
-        }
+     
 
         inline void Keyed_hash_func(const Item& input,Item& output){
             auto sigma_x = sigma(input);
@@ -199,36 +115,7 @@ namespace PSI
             PSI::util::xor_buffers(output,input_u8,Lambda_bytes);
         }
 
-        inline void Keyed_hash_func(const std::bitset<Lambda>& in,std::bitset<Lambda>& out){
-            uint8_t outChar[Lambda_bytes];
-            uint64_t inChar[Lambda_bytes>>3] ={0};
-            auto str = in.to_string();
-            // std::cout << str << std::endl;
-            // std::cout << str.substr(0,64) << std::endl;
-            // std::cout << str.substr(64,64) << std::endl;
-
-            inChar[0] = std::stoull(str.substr(0,64),NULL,2);
-            inChar[1] = std::stoull(str.substr(64,64),NULL,2);
-
-            Keyed_hash_func((uint8_t*)inChar,outChar);
-            to_Bitset(out,outChar);
-        }
-
-
-        inline void Convert_to_G(const std::bitset<Lambda>& in,uint8_t& out){
-            if(in[1] == 1){
-                out = 1;
-            }
-            else{
-                out = 0;
-            }
-        }
-
-        inline void Convert_to_G(const std::bitset<Lambda>&in, std::bitset<DPF_COMPRESS_NODES_NUMBER>& out){
-            // std::cout << in.to_string() << std::endl;
-            out =std::bitset<DPF_COMPRESS_NODES_NUMBER>(in.to_string().substr(Lambda-DPF_COMPRESS_NODES_NUMBER-1,DPF_COMPRESS_NODES_NUMBER));
-            // std::cout << out.to_string() << std::endl;
-        }
+      
         inline void Convert_to_G(const share_type& in,uint8_t *out){
             util::copy_bytes(in.data()+1,DPF_COMPRESS_NODES_BYTE_NUMBER,out);
         }

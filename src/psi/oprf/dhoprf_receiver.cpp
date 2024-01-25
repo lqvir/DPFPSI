@@ -8,7 +8,7 @@
 #include <memory>
 
 namespace PSI{
-    namespace OPRF{
+    namespace DHOPRF{
 
         int OPRFReceiver::init(){
             curve = EC_GROUP_new_by_curve_name(curve_id);

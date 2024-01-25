@@ -1,0 +1,3 @@
+[submodule "mobile_psi_cpp"]
+	path = mobile_psi_cpp
+	url = https://github.com/contact-discovery/mobile_psi_cpp.git

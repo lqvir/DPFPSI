@@ -6,7 +6,7 @@ void test_func(){
 }
 
 namespace PSI{
-    namespace OPRF{
+    namespace DHOPRF{
         int OPRFSender::init(){
             curve = EC_GROUP_new_by_curve_name(curve_id);
             ctx_b = BN_CTX_new();

@@ -16,7 +16,6 @@ install(
     DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR}/psi
 )
-
 add_subdirectory(oprf)
 add_subdirectory(common)
 add_subdirectory(dpf)

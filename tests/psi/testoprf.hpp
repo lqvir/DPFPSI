@@ -7,7 +7,7 @@
 
 #include <chrono>
 #include <vector>
-using namespace PSI::OPRF;
+using namespace PSI::DHOPRF;
 
 void func(int i){
 }
@@ -220,7 +220,7 @@ void test_to_ECPOINT(){
     for(auto x:ServerSet){
         PSI::util::printchar(x.get_as<uint8_t>().data(),16);
         
-        auto res = PSI::OPRF::BlockToECPoint(curve,x.get_as<char>().data(),NULL);
+        auto res = PSI::DHOPRF::BlockToECPoint(curve,x.get_as<char>().data(),NULL);
         uint8_t buffer1[33];
         auto ll = EC_POINT_point2oct(curve,res,POINT_CONVERSION_COMPRESSED,buffer1,33,bn_ctx);
         printf("se");
@@ -229,7 +229,7 @@ void test_to_ECPOINT(){
     for(auto x:ReceiverSet){
         PSI::util::printchar(x.get_as<uint8_t>().data(),16);
 
-        auto res = PSI::OPRF::BlockToECPoint(curve,x.get_as<char>().data(),NULL);
+        auto res = PSI::DHOPRF::BlockToECPoint(curve,x.get_as<char>().data(),NULL);
         uint8_t buffer1[33];
         auto ll = EC_POINT_point2oct(curve,res,POINT_CONVERSION_COMPRESSED,buffer1,33,bn_ctx);
         printf("se");

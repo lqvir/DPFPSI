@@ -170,29 +170,29 @@ namespace PSI
             return hash_table;
 
         }
-        std::vector<OPRF::OPRFPoint>  PSIServer::process_query(const std::vector<OPRF::OPRFPoint>& input){
+        std::vector<DHOPRF::OPRFPoint>  PSIServer::process_query(const std::vector<DHOPRF::OPRFPoint>& input){
             return DHOPRFSender.ProcessQueries(input);
         }
-        std::vector<OPRF::OPRFPoint>  PSIServer::process_query_thread(const std::vector<OPRF::OPRFPoint>& input){
+        std::vector<DHOPRF::OPRFPoint>  PSIServer::process_query_thread(const std::vector<DHOPRF::OPRFPoint>& input){
             return DHOPRFSender.ProcessQueriesThread(input);
         }
 
-        std::vector<OPRF::OPRFPointFourQ>  PSIServer::process_queryFourQ(std::vector<OPRF::OPRFPointFourQ>& input){
+        std::vector<DHOPRF::OPRFPointFourQ>  PSIServer::process_queryFourQ(std::vector<DHOPRF::OPRFPointFourQ>& input){
             return DHOPRFSender.ProcessQueriesFourQ(input);
         }
-        std::vector<OPRF::OPRFPointFourQ>  PSIServer::process_query_threadFourQ(std::vector<OPRF::OPRFPointFourQ>& input){
+        std::vector<DHOPRF::OPRFPointFourQ>  PSIServer::process_query_threadFourQ(std::vector<DHOPRF::OPRFPointFourQ>& input){
             return DHOPRFSender.ProcessQueriesThreadFourQ(input);
         }
-        DPF::DPFResponseList PSIServer::DPFShare(const DPF::DPFKeyList& keylist){
-            return DPFClient.DPFShare(keylist,hash_table);
-        }
+        // DPF::DPFResponseList PSIServer::DPFShare(const DPF::DPFKeyList& keylist){
+        //     return DPFClient.DPFShare(keylist,hash_table);
+        // }
 
-        std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const DPF::DPFKeyList& keylist){
-            return DPFClient.FullEval(keylist,hash_table);
-        }
-        std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist){
-            return DPFClient.FullEval(keylist,hash_table);
-        }
+        // std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const DPF::DPFKeyList& keylist){
+        //     return DPFClient.FullEval(keylist,hash_table);
+        // }
+        // std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist){
+        //     return DPFClient.FullEval(keylist,hash_table);
+        // }
         std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList> keylist){
             return DPFClient.FullEval(keylist,hash_table);
         }
@@ -238,7 +238,7 @@ namespace PSI
 
         void PSIServer::run(std::vector<Channel>& chlsC){
 
-            std::vector<OPRF::OPRFPointFourQ> query(server_set_size_);
+            std::vector<DHOPRF::OPRFPointFourQ> query(server_set_size_);
             chlsC[0].recv(query);
             auto response = process_query_threadFourQ(query);
             chlsC[0].send(response);

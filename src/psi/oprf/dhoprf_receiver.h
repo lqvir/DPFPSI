@@ -16,7 +16,7 @@
 // #include "gsl/span"
 
 namespace PSI{
-    namespace OPRF{
+    namespace DHOPRF{
         class OPRFReceiver{
         public:
             OPRFReceiver() = default;
