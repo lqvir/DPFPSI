@@ -23,6 +23,9 @@ namespace PSI
 {
     namespace GCOPRF
     {
+
+        OPRFSender::OPRFSender(droidCrypto::ChannelWrapper& chan) :  channel_(chan), circ_(chan) {};
+
         void setup(){
             std::array<uint8_t, 16> lowmc_key_;
             std::vector<droidCrypto::block> elements;
@@ -68,6 +71,12 @@ namespace PSI
             }
 
             auto time1 = std::chrono::high_resolution_clock::now();
+
+        }
+
+
+        void LowerMCResponse(){
+
 
         }
     } // namespace GCOPRF
