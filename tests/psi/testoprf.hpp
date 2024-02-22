@@ -5,6 +5,9 @@
 #include "psi/common/thread_pool_mgr.h"
 #include "psi/common/item.h"
 
+#include "psi/oprf/GCOPRF_receiver.h"
+#include "psi/oprf/GCOPRF_sender.h"
+
 #include <chrono>
 #include <vector>
 using namespace PSI::DHOPRF;
@@ -270,4 +273,42 @@ void test_fourQ(){
     }
     ecpt1.save(out);
     PSI::util::printchar(out.data(),out.size());
+}
+
+
+void test_lowerMC(){
+
+    auto recevierinput = std::make_unique<std::vector<droidCrypto::block>>();
+    auto senderinput = std::make_unique<std::vector<droidCrypto::block>>();
+    droidCrypto::SecureRandom rnd;
+    for(size_t idx = 0; idx < 4; idx++){
+
+        recevierinput->emplace_back(droidCrypto::AllOneBlock);
+        recevierinput->emplace_back(rnd.randBlock());
+        senderinput->emplace_back(droidCrypto::AllOneBlock);
+        senderinput->emplace_back(rnd.randBlock());
+        senderinput->emplace_back(rnd.randBlock());
+        senderinput->emplace_back(rnd.randBlock());
+    }
+
+    auto routine = [&]{
+
+        droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
+        printf("%d\n",__LINE__);
+        PSI::GCOPRF::OPRFReciver r(chanc);
+
+        r.base(8);
+        r.Online(std::move(recevierinput));
+    };
+    auto threads = std::async(routine);
+        printf("%d\n",__LINE__);
+
+    droidCrypto::CSocketChannel chans("127.0.0.1", 8000, true);
+    PSI::GCOPRF::OPRFSender s(chans);
+    s.setup(std::move(senderinput));
+    s.base();
+    s.Online();
+    threads.get();
+  
+
 }

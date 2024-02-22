@@ -31,16 +31,27 @@ namespace PSI
             std::vector<droidCrypto::BitVector> bit_elements;
             bit_elements.reserve(elements->size());
             for(size_t i = 0; i < elements->size(); i++) {
-                auto res = *elements.get();
-
-                droidCrypto::BitVector bitinput((uint8_t*)(&res[i]), 128);
+                droidCrypto::BitVector bitinput((uint8_t*)(&(*elements)[i]), 128);
                 bit_elements.push_back(bitinput);
             }
             channel_.clearStats();
+
             std::vector<droidCrypto::BitVector> result = circ_.evaluateOnline(bit_elements);
 
+            for(size_t ele = 0; ele < num_client_elements; ele++){
+                auto temp = (uint8_t*)result[ele].data();
+                for(size_t idx = 0; idx < 16; idx ++){
+                    printf("%02x", temp[idx]);
+                }
+                printf("\n");
+            }
+            std::vector<std::string> outvec;
 
+            
         }
+
+
+
     } // namespace GCOPRF
     
 } // namespace PSI

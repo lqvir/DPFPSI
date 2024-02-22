@@ -1,6 +1,7 @@
 #pragma once
 
 #include "psi/oprf/GCOPRF.h"
+#include <droidCrypto/gc/circuits/LowMCCircuit.h>
 
 namespace PSI
 {
@@ -9,11 +10,11 @@ namespace PSI
         
         class OPRFSender{
         public:
-            OPRFSender::OPRFSender(droidCrypto::ChannelWrapper& chan);
+            OPRFSender(droidCrypto::ChannelWrapper& chan);
+            void setup(std::unique_ptr<std::vector<droidCrypto::block>> elements);
 
-            void base(size_t num_elements);
-            void OPRFSender::Online
-                (std::unique_ptr<std::vector<droidCrypto::block>> elements);
+            void base();
+            void Online();
         private:
             droidCrypto::ChannelWrapper &channel_;
             std::array<uint8_t, 16> lowmc_key_;

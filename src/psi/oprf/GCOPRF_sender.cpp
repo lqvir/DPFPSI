@@ -26,16 +26,14 @@ namespace PSI
 
         OPRFSender::OPRFSender(droidCrypto::ChannelWrapper& chan) :  channel_(chan), circ_(chan) {};
 
-        void setup(){
-            std::array<uint8_t, 16> lowmc_key_;
-            std::vector<droidCrypto::block> elements;
+        void OPRFSender::setup(std::unique_ptr<std::vector<droidCrypto::block>> elements){
             auto time0 = std::chrono::high_resolution_clock::now();
-            size_t num_server_elements = elements.size();
+            size_t num_server_elements = elements->size();
             size_t num_threads_ = ThreadPoolMgr::GetThreadCount();
 
-            //MT-bounds
+            // MT-bounds
             size_t elements_per_thread = num_server_elements /num_threads_;
-            //LOWMC encryption
+            // LOWMC encryption
             // get a random key
             droidCrypto::PRNG::getTestPRNG().get(lowmc_key_.data(), lowmc_key_.size());
 
@@ -49,9 +47,9 @@ namespace PSI
                 auto t = std::thread([params, key_calc, &elements, elements_per_thread,idx=thrd]{
                     lowmc_key_t* pt = mzd_local_init(1, params->n);
                     for(size_t i = idx*elements_per_thread; i < (idx+1)*elements_per_thread; i++) {
-                        mzd_from_char_array(pt, (uint8_t *) (&elements[i]), params->n / 8);
+                        mzd_from_char_array(pt, (uint8_t *) (&(*elements)[i]), params->n / 8);
                         mzd_local_t *ct = lowmc_call(params, key_calc, pt);
-                        mzd_to_char_array((uint8_t *) (&elements[i]), ct, params->n / 8);
+                        mzd_to_char_array((uint8_t *) (&(*elements)[i]), ct, params->n / 8);
                         mzd_local_free(ct);
                     }
                     mzd_local_free(pt);
@@ -60,25 +58,41 @@ namespace PSI
             }
             lowmc_key_t* pt = mzd_local_init(1, params->n);
             for(size_t i = (num_threads_-1)*elements_per_thread; i < num_server_elements; i++) {
-                mzd_from_char_array(pt, (uint8_t *) (&elements[i]), params->n / 8);
+                mzd_from_char_array(pt, (uint8_t *) (&(*elements)[i]), params->n / 8);
                 mzd_local_t *ct = lowmc_call(params, key_calc, pt);
-                mzd_to_char_array((uint8_t *) (&elements[i]), ct, (params->n) / 8);
+                mzd_to_char_array((uint8_t *) (&(*elements)[i]), ct, (params->n) / 8);
                 mzd_local_free(ct);
             }
             mzd_local_free(pt);
             for(size_t thrd = 0; thrd < num_threads_ -1; thrd++) {
                 threads[thrd].join();
             }
-
+            for(size_t ele = 0; ele < num_server_elements; ele++){
+                auto temp = (uint8_t*)&(*elements)[ele];
+                for(size_t idx = 0; idx < 16; idx ++){
+                    printf("%02x", temp[idx]);
+                }
+                printf("\n");
+            }
             auto time1 = std::chrono::high_resolution_clock::now();
 
         }
 
+        void OPRFSender::base(){
+            size_t num_client_elements;
+            channel_.recv((uint8_t*)&num_client_elements, sizeof(num_client_elements));
+            num_client_elements = be64toh(num_client_elements);
 
-        void LowerMCResponse(){
-
-
+            droidCrypto::BitVector key_bits(lowmc_key_.data(),
+                                            droidCrypto::SIMDLowMCCircuitPhases::params->n);
+            circ_.garbleBase(key_bits, num_client_elements);
         }
+        void OPRFSender::Online(){
+            circ_.garbleOnline();
+        
+        }
+
+        
     } // namespace GCOPRF
     
 } // namespace PSI

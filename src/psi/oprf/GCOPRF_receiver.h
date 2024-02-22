@@ -10,7 +10,7 @@ namespace PSI
         class OPRFReciver{
         public:
             OPRFReciver(droidCrypto::ChannelWrapper& chan);
-
+            void setup();
             void base(size_t num_elements);
             void Online
                 (std::unique_ptr<std::vector<droidCrypto::block>> elements);

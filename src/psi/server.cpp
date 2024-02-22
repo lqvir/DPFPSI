@@ -248,8 +248,6 @@ namespace PSI
             auto response_s = DPFShareFullEval(ks);
             chlsC[0].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));
 
-
-
         }
     } // namespace Server
     
