@@ -10,15 +10,15 @@ namespace PSI{
     {
         class AidServer{
         public:
-            AidServer():DPFClient(0){};
+            AidServer(){};
             // DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist,const std::vector<LabelMask>& hash_table_input);
             // std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(const DPF::DPFKeyList& keylist,const std::vector<LabelMask>& hash_table_input);
             // std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(
             //     const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist,
             //     const std::vector<LabelMask>& hash_table_input
             //     );
-            std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(
-                const std::shared_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList> keylist,
+            std::unique_ptr<DPF::DPFResponseList> DPFShareFullEval(
+                const std::unique_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList>& keylist,
                 const std::vector<LabelMask>& hash_table_input
                 );
             void run(const std::vector<LabelMask>& input,std::vector<Channel>& chlsC);
@@ -27,7 +27,6 @@ namespace PSI{
         private:
 
             size_t server_set_size_;
-            DPF::dpf_client DPFClient;
         };
     } // namespace AidServer
     

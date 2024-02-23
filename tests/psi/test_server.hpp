@@ -229,8 +229,8 @@ void test_early_terminal(){
 
     clocks.setpoint("cuckoo finish ");
 
-    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+    std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+    std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
 
 
     client.DPFGen(ks,ka);
@@ -244,163 +244,6 @@ void test_early_terminal(){
     client.InsectionCheck(value,ReceiverSet);
     clocks.setpoint("ALL Eval finish ");
     clocks.printTimePointRecord();
-}
-void Test0(){
-    PSI::StopWatch clocks("Test0");
-
-    std::vector<PSI::Item> ServerSet;
-    std::vector<PSI::Item> ReceiverSet;
-
-    size_t Rsize = 5535;
-    size_t Ssize = 65536;
-    std::vector<PSI::Label> label(Ssize);
-    clocks.setpoint("start");  
-    for(size_t idx = 0;idx < Ssize; idx++){
-        uint64_t temp[2];
-        RAND_bytes((uint8_t*)temp,16);
-        ServerSet.emplace_back(temp[0],temp[1]);
-        RAND_bytes((uint8_t*)temp,16);
-        label.emplace_back(temp[0],temp[1]);
-    }
-    for(size_t idx = 0; idx < Rsize; idx++){
-        uint64_t temp[2];
-        RAND_bytes((uint8_t*)temp,16);
-        ReceiverSet.emplace_back(temp[0],temp[1]);
-    }
-    clocks.setpoint("prepare_data_finish");  
-    clocks.setDurationStart("offline");
-    PSI::Server::PSIServer server(Ssize);
-    PSI::AidServer::AidServer aidserver;
-    auto hash_table = server.init(ServerSet,label);
-    clocks.setDurationEnd("offline");
-
-    for(size_t round_idx = 0; round_idx <= 10; round_idx++){
-        std::string round_name = "round"+std::to_string(round_idx);
-        clocks.setpoint(round_name+"start");
-        for(size_t idx = 0; idx < 32;idx++){
-            ReceiverSet[idx*5+round_idx*11] = ServerSet[idx*5+round_idx*11];
-        }
-        PSI::Client::PSIClient client(Rsize);
-
-        clocks.setDurationStart(round_name);
-        clocks.setpoint(round_name+"preprae data finish");
-        auto query = client.OPRFQueryThread(ReceiverSet);
-        clocks.setpoint(round_name+"oprf finish1");
-
-        auto response = server.process_query_thread(query);
-        clocks.setpoint(round_name+"oprf finish2");
-
-        auto value = client.OPRFResponseThread(response);
-        clocks.setpoint(round_name+"oprf finish3");
-        
-        client.Cuckoo_All_location(value);
-
-        clocks.setpoint(round_name+"cuckoo finish ");
-        
-        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-        client.DPFGen(ks,ka);
-        clocks.setpoint(round_name+"key generate finish ");
-
-        auto response_s = server.DPFShareFullEval(ks);
-        auto response_a = aidserver.DPFShareFullEval(ka, hash_table);
-
-        clocks.setpoint(round_name+"Full Eval finish ");
-
-        client.DictGen(response_s,response_a);
-        client.InsectionCheck(value,ReceiverSet);
-        clocks.setpoint(round_name+"ALL Eval finish ");
-
-        clocks.setDurationEnd(round_name);
-
-    }
-
-    clocks.printTimePointRecord();
-
-    std::cout<<std::endl;
-    std::cout<<std::endl;
-    std::cout<<std::endl;
-
-    clocks.printDurationRecord();
-}
-
-void Test1(){
-    PSI::StopWatch clocks("Test1");
-
-    std::vector<PSI::Item> ServerSet;
-    std::vector<PSI::Item> ReceiverSet;
-
-    size_t Rsize = 5535;
-    size_t Ssize = 1048576;
-    std::vector<PSI::Label> label(Ssize);
-    clocks.setpoint("start");  
-    for(size_t idx = 0;idx < Ssize; idx++){
-        uint64_t temp[2];
-        RAND_bytes((uint8_t*)temp,16);
-        ServerSet.emplace_back(temp[0],temp[1]);
-        RAND_bytes((uint8_t*)temp,16);
-        label.emplace_back(temp[0],temp[1]);
-    }
-    for(size_t idx = 0; idx < Rsize; idx++){
-        uint64_t temp[2];
-        RAND_bytes((uint8_t*)temp,16);
-        ReceiverSet.emplace_back(temp[0],temp[1]);
-    }
-    clocks.setpoint("prepare_data_finish");  
-    clocks.setDurationStart("offline");
-    PSI::Server::PSIServer server(Ssize);
-    PSI::AidServer::AidServer aidserver;
-    auto hash_table = server.init_FourQ(ServerSet,label);
-    clocks.setDurationEnd("offline");
-
-    for(size_t round_idx = 0; round_idx <= 10; round_idx++){
-        std::string round_name = "round"+std::to_string(round_idx);
-        clocks.setpoint(round_name+"start");
-        for(size_t idx = 0; idx < 32;idx++){
-            ReceiverSet[idx*5+round_idx*11] = ServerSet[idx*5+round_idx*11];
-        }
-        PSI::Client::PSIClient client(Rsize);
-
-        clocks.setDurationStart(round_name);
-        clocks.setpoint(round_name+"preprae data finish");
-        auto query = client.OPRFQueryThreadFourQ(ReceiverSet);
-        clocks.setpoint(round_name+"oprf finish1");
-
-        auto response = server.process_query_threadFourQ(query);
-        clocks.setpoint(round_name+"oprf finish2");
-
-        auto value = client.OPRFResponseThreadFourQ(response);
-        clocks.setpoint(round_name+"oprf finish3");
-        
-        client.Cuckoo_All_location(value);
-
-        clocks.setpoint(round_name+"cuckoo finish ");
-        
-        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-        client.DPFGen(ks,ka);
-        clocks.setpoint(round_name+"key generate finish ");
-
-        auto response_s = server.DPFShareFullEval(ks);
-        auto response_a = aidserver.DPFShareFullEval(ka, hash_table);
-
-        clocks.setpoint(round_name+"Full Eval finish ");
-
-        client.DictGen(response_s,response_a);
-        client.InsectionCheck(value,ReceiverSet);
-        clocks.setpoint(round_name+"ALL Eval finish ");
-
-        clocks.setDurationEnd(round_name);
-
-    }
-
-    clocks.printTimePointRecord();
-
-    std::cout<<std::endl;
-    std::cout<<std::endl;
-    std::cout<<std::endl;
-
-    clocks.printDurationRecord();
 }
 
 #include "psi/common/Network/Session.h"
@@ -497,7 +340,7 @@ void Test3(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    size_t Rsize = 1;
+    size_t Rsize = 1024;
     size_t Ssize = 1048576;
     std::vector<PSI::Label> label(Ssize);
     for(size_t idx = 0;idx < Ssize; idx++){
@@ -512,10 +355,10 @@ void Test3(){
         RAND_bytes((uint8_t*)temp,16);
         ReceiverSet.emplace_back(temp[0],temp[1]);
     }
-    ReceiverSet[0] = ServerSet[0];
-    // for(size_t idx = 0; idx < 32;idx++){
-    //     ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
-    // }
+    // ReceiverSet[0] = ServerSet[0];
+    for(size_t idx = 0; idx < 32;idx++){
+        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    }
     PSI::Server::PSIServer server(Ssize);
     
     auto lambdaClient = [&](){

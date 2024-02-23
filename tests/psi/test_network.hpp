@@ -44,10 +44,9 @@ void server_func_dpf(){
     Session session(ios,"127.0.0.1:40000",SessionMode::Server);
     Channel* chl = new Channel;
     *chl = session.addChannel();
-    PSI::DPF::dpf_server test;
     PSI::DPF::DPFKeyEarlyTerminal_ByArray k0,k1;
     
-    test.Gen(23,1,k0,k1);
+    DPF::DPFServer::Gen(23,1,k0,k1);
     auto send_lambda = [&](Channel* chl){
         chl->send(k0.share);
         chl->send(k0.cw);

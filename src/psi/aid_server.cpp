@@ -9,14 +9,13 @@ namespace PSI{
 
 
 
-        std::shared_ptr<DPF::DPFResponseList>  AidServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList> keylist,const std::vector<LabelMask>& hash_table_input){
-            return DPFClient.FullEval(keylist,hash_table_input);
+        std::unique_ptr<DPF::DPFResponseList>  AidServer::DPFShareFullEval(const std::unique_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList>& keylist,const std::vector<LabelMask>& hash_table_input){
+            return std::move(DPF::DPFClient::FullEval(keylist,hash_table_input,0));
         }
 
         void AidServer::run(const std::vector<LabelMask>& input,std::vector<Channel>& chlsC){
 
-            std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-            
+            std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
             chlsC[0].recv(reinterpret_cast<uint8_t*>(ka.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
             auto response_a = DPFShareFullEval(ka,input);
 
@@ -26,10 +25,10 @@ namespace PSI{
 
         }
 
-        void AidServer::start(std::string SelfAddress,std::string ServerAddress){
+        void AidServer::start(std::string ServerAddress,std::string ClientAddress){
             IOService ios;
-            Session sessionS(ios,SelfAddress,SessionMode::Server);
-            Session sessionC(ios,ServerAddress,SessionMode::Server);
+            Session sessionS(ios,ServerAddress,SessionMode::Server);
+            Session sessionC(ios,ClientAddress,SessionMode::Server);
 
             std::vector<Channel> chlsS(ThreadPoolMgr::GetThreadCount());
             std::vector<Channel> chlsC(ThreadPoolMgr::GetThreadCount());

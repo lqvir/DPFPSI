@@ -1,18 +1,14 @@
 #include <stack>
 
 #include "dpf_client.h"
-#include "pcGGM.h"
 #include "psi/common/thread_pool_mgr.h"
 namespace PSI
 {
     namespace DPF
     {
-        dpf_client::dpf_client(uint8_t party_number):party_number_(party_number){};
-        
-
-
-        std::shared_ptr<DPFResponseList> dpf_client::FullEval(const std::shared_ptr<DPFKeyEarlyTerminal_ByArrayList> dpfkeylist,const std::vector<LabelMask>& hash_table){
-            std::shared_ptr<DPFResponseList> dpf_response_list = std::make_shared<DPFResponseList>();
+       
+        std::unique_ptr<DPFResponseList> DPFClient::FullEval(const std::unique_ptr<DPFKeyEarlyTerminal_ByArrayList>& dpfkeylist,const std::vector<LabelMask>& hash_table,size_t party_number){
+            std::unique_ptr<DPFResponseList> dpf_response_list = std::make_unique<DPFResponseList>();
             ThreadPoolMgr tpm;
             size_t task_numbers  = cuckoo::block_num*cuckoo::max_set_size;
             size_t task_count =std::min<size_t>(ThreadPoolMgr::GetThreadCount(), task_numbers);
@@ -43,9 +39,9 @@ namespace PSI
             for (auto &f : futures) {
                 f.get();
             }
-            return dpf_response_list;
+            return std::move(dpf_response_list);
         }
-
+       
 
     } // namespace DPF
     

@@ -7,7 +7,11 @@
 #include <stack>
 namespace PSI{
     namespace DPF{
-        void pcGGM::GenKey(size_t alpha,uint8_t beta,DPFKeyEarlyTerminal_ByArray& key0,DPFKeyEarlyTerminal_ByArray& key1){
+        namespace pcGGM{
+
+
+        
+        void GenKey(size_t alpha,uint8_t beta,DPFKeyEarlyTerminal_ByArray& key0,DPFKeyEarlyTerminal_ByArray& key1){
 #if LogLevel == 0
             std::cout << alpha << std::endl;
             util::printchar(reinterpret_cast<uint8_t*>(&alpha),8);
@@ -136,7 +140,7 @@ namespace PSI{
         
         }
 
-        pcGGMLeafList pcGGM::GenTree(const DPFKeyEarlyTerminal_ByArray& key){
+        pcGGMLeafList GenTree(const DPFKeyEarlyTerminal_ByArray key){
             auto ctx = EVP_CIPHER_CTX_new();
             EVP_CIPHER_CTX_init(ctx);
             int ret = EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, AESKEY, NULL);
@@ -202,6 +206,6 @@ namespace PSI{
             return ans;
 
         }
-
+        }
     } // namespace DPF
 } // namespace PSI

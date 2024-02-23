@@ -123,8 +123,8 @@ namespace PSI
     
     // }
     void PSIClient::DPFGen(
-        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ks,
-        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ka
+        const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> &Ks,
+        const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> &Ka
                   )
     {
 
@@ -132,7 +132,7 @@ namespace PSI
             auto block_size = IndexSets_by_block.at(block_id).size();
             for(size_t pos_id = 0; pos_id < block_size; pos_id++){
            
-                DPFServer.Gen(IndexSets_by_block.at(block_id).at(pos_id),1,Ks->at(block_id).at(pos_id),Ka->at(block_id).at(pos_id));
+                DPF::DPFServer::Gen(IndexSets_by_block.at(block_id).at(pos_id),1,Ks->at(block_id).at(pos_id),Ka->at(block_id).at(pos_id));
             }
             for(size_t pad_idx = block_size ;pad_idx < cuckoo::max_set_size; pad_idx++){
                 Ka->at(block_id).at(pad_idx).RandomKey();
@@ -141,8 +141,8 @@ namespace PSI
         }
     
     }
-    void PSIClient::DictGen(const std::shared_ptr<DPF::DPFResponseList> ResponseListFromS,
-        const std::shared_ptr<DPF::DPFResponseList> ResponseListFromA){
+    void PSIClient::DictGen(const std::unique_ptr<DPF::DPFResponseList>& ResponseListFromS,
+        const std::unique_ptr<DPF::DPFResponseList>& ResponseListFromA){
         
         
         for(size_t block_id =0 ; block_id < cuckoo::block_num ; block_id ++ ){
@@ -233,7 +233,6 @@ namespace PSI
         auto query = OPRFQueryThreadFourQ(input);
         chlsS[0].send(query);
         std::vector<DHOPRF::OPRFPointFourQ> response(client_set_size_);
-        std::cout <<__FILE__<<":" << __LINE__ << std::endl;
 
         chlsS[0].recv(response);
 
@@ -244,22 +243,21 @@ namespace PSI
         Cuckoo_All_location(oprf_value);
         // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
 
-        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-        std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+        std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+        std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
 
         DPFGen(ks,ka);
         clocks.setpoint("DPFFinish");
         
+        chlsA[0].send(reinterpret_cast<uint8_t*>(ka.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
         chlsS[0].send(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
 
-        chlsA[0].send(reinterpret_cast<uint8_t*>(ka.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
-
-        std::shared_ptr<PSI::DPF::DPFResponseList> ResponseS = std::make_shared<PSI::DPF::DPFResponseList>();
-        std::shared_ptr<PSI::DPF::DPFResponseList> ResponseA = std::make_shared<PSI::DPF::DPFResponseList>();
+        std::unique_ptr<PSI::DPF::DPFResponseList> ResponseS = std::make_unique<PSI::DPF::DPFResponseList>();
+        std::unique_ptr<PSI::DPF::DPFResponseList> ResponseA = std::make_unique<PSI::DPF::DPFResponseList>();
         chlsS[0].recv(reinterpret_cast<uint8_t*>(ResponseS.get()),sizeof(PSI::DPF::DPFResponseList));
         chlsA[0].recv(reinterpret_cast<uint8_t*>(ResponseA.get()),sizeof(PSI::DPF::DPFResponseList));
 
-        DictGen(ResponseS,ResponseA);
+        DictGen(std::move(ResponseS),std::move(ResponseA));
         InsectionCheck(oprf_value,input);
         clocks.setpoint("Finish");
 

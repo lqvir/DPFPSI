@@ -193,8 +193,8 @@ namespace PSI
         // std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist){
         //     return DPFClient.FullEval(keylist,hash_table);
         // }
-        std::shared_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList> keylist){
-            return DPFClient.FullEval(keylist,hash_table);
+        std::unique_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::unique_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList>& keylist){
+            return std::move(DPF::DPFClient::FullEval(keylist,hash_table,0));
         }
 
         void PSIServer::start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
@@ -243,7 +243,7 @@ namespace PSI
             auto response = process_query_threadFourQ(query);
             chlsC[0].send(response);
 
-            std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_shared<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+            std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
             chlsC[0].recv(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
             auto response_s = DPFShareFullEval(ks);
             chlsC[0].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));

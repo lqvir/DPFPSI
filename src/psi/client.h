@@ -39,14 +39,14 @@ namespace PSI{
                 //     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ka
                 // );
               void DPFGen(
-                    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ks,
-                    std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> Ka
+                    const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>& Ks,
+                    const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>& Ka
                 );
 
 
                 void DictGen(
-                    std::shared_ptr<DPF::DPFResponseList> ResponseListFromS,
-                    std::shared_ptr<DPF::DPFResponseList> ResponseListFromA
+                    const std::unique_ptr<DPF::DPFResponseList>& ResponseListFromS,
+                    const std::unique_ptr<DPF::DPFResponseList>& ResponseListFromA
                 );
 
                 void InsectionCheck(std::vector<DHOPRF::OPRFValueOpenssL>& oprf_input,const std::vector<Item>& input);
@@ -58,7 +58,6 @@ namespace PSI{
                 DHOPRF::OPRFReceiver DHOPRFReceiver;
                 size_t client_set_size_;
                 std::vector<std::vector<size_t>> IndexSets_by_block; 
-                DPF::dpf_server DPFServer;
                 std::unordered_map<size_t,LabelMask> Dict;
                 
         };

@@ -19,7 +19,7 @@ namespace PSI
         class PSIServer{
         public:
             PSIServer() = default;
-            PSIServer(size_t server_set_size):server_set_size_(server_set_size),DPFClient(0){
+            PSIServer(size_t server_set_size):server_set_size_(server_set_size){
             };
             std::vector<LabelMask> init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
             std::vector<LabelMask> init_FourQ(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
@@ -31,7 +31,7 @@ namespace PSI
             // DPF::DPFResponseList DPFShare(const DPF::DPFKeyList& keylist);
             // std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(const DPF::DPFKeyList& keylist);
             // std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist);
-            std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList> keylist);
+            std::unique_ptr<DPF::DPFResponseList> DPFShareFullEval(const std::unique_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList>& keylist);
             void start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
             void run(std::vector<Channel>& chlsC);
         private:
@@ -39,7 +39,6 @@ namespace PSI
 
             size_t server_set_size_;
             DHOPRF::OPRFSender DHOPRFSender;
-            DPF::dpf_client DPFClient;
         };
 
 

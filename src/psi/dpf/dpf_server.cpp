@@ -1,6 +1,5 @@
 
 #include "dpf_server.h"
-#include "pcGGM.h"
 #include "openssl/rand.h"
 #include "bitset"
 #include "psi/common/BitOpreate.h"
@@ -11,10 +10,10 @@ namespace PSI
  
 
         
-        void dpf_server::Gen(size_t alpha,uint8_t beta,DPFKeyEarlyTerminal_ByArray& key0,DPFKeyEarlyTerminal_ByArray& key1){
+        void DPFServer::Gen(size_t alpha,uint8_t beta,DPFKeyEarlyTerminal_ByArray& key0,DPFKeyEarlyTerminal_ByArray& key1){
             #if LogLevel == 0
-            std::cout << alpha << std::endl;
-            util::printchar(reinterpret_cast<uint8_t*>(&alpha),8);
+                std::cout << alpha << std::endl;
+                util::printchar(reinterpret_cast<uint8_t*>(&alpha),8);
             #endif
             
             
@@ -139,7 +138,7 @@ namespace PSI
             EVP_CIPHER_CTX_free(ctx);
         }
 
-        void dpf_server::DPFConstruct(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA){
+        void DPFServer::DPFConstruct(const DPF::DPFResponseList& ResponseListFromS,const DPF::DPFResponseList& ResponseListFromA){
             // for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
             //     auto& DPFResponseS = ResponseListFromS[block_id];
             //     auto& DPFResponseA = ResponseListFromA[block_id];

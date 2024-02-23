@@ -171,7 +171,7 @@ namespace PSI
         }
 
 
-        using namespace cuckooparam220vs1;
+        using namespace cuckooparam220vs1024;
 
     } // namespace cuckoo
     
