@@ -2,7 +2,7 @@
 #include <string>
 #include <cstdlib>
 #include "Insection.h"
-#include "psi/server.h"
+#include "psi/aid_server.h"
 #include "psi/common/stopwatch.h"
 #include "psi/common/thread_pool_mgr.h"
 
@@ -67,41 +67,21 @@ int main(int argc, char* argv[]) {
 
     if(PerfromCMD(argc,argv))
         return 1;
-    std::vector<PSI::Item> ServerSet;
-    std::vector<PSI::Label> LabelSet;
-
-    for(size_t idx = 0; idx < cmdparams.setsize; idx++){
-        uint64_t temp[2];
-        RAND_bytes((uint8_t*)temp,16);
-        ServerSet.emplace_back(temp[0],temp[1]);
-        if(PSI::Label_byte_size > 0){
-            RAND_bytes((uint8_t*)temp,PSI::Label_byte_size);
-            LabelSet.emplace_back(gsl::make_span((uint8_t*)temp,PSI::Label_byte_size));
-        }
-    }
-    for(size_t idx = 0; idx <cmdparams.inssize; idx++){
-        ServerSet[idx*11] = PSI::Item(insection[idx],insection[idx+cmdparams.inssize]); 
-    }
+   
 
     std::cout << "Prepare TestData Finish" << std::endl;
-    PSI::StopWatch serverclocks("server");
+    PSI::StopWatch aidserverclocks("aidserver");
     
     PSI::ThreadPoolMgr::SetThreadCount(cmdparams.threads);
-    serverclocks.setpoint("start");
-    droidCrypto::CSocketChannel chans("127.0.0.1", 8000, true);
 
+    PSI::AidServer::AidServer aidserver;
+    aidserverclocks.setpoint("start");
+    aidserver.DHBasedPSI_start("127.0.0.1:50002","127.0.0.1:50001");
 
-    serverclocks.setpoint("Network start");
-    PSI::Server::PSIServer server(cmdparams.setsize,chans);
-
-    serverclocks.setpoint("start");
-
-    server.DHBasedPSI_start("127.0.0.1:50000","127.0.0.1:50001",ServerSet,LabelSet);
-    
-    serverclocks.setpoint("ALL Finish");
+    aidserverclocks.setpoint("ALL Finish");
 
     std::cout << "------------------- ALL Server Finish ---------------------" << std::endl;
 
-    serverclocks.printTimePointRecord();
+    aidserverclocks.printTimePointRecord();
     return 0;
 }
