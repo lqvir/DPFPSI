@@ -10,11 +10,15 @@ namespace PSI
         
         class OPRFSender{
         public:
+        
             OPRFSender(droidCrypto::ChannelWrapper& chan);
-            void setup(std::unique_ptr<std::vector<droidCrypto::block>> elements);
+            std::unique_ptr<std::vector<GCOPRFValue>>
+                setup(std::unique_ptr<std::vector<droidCrypto::block>> elements);
 
             void base();
             void Online();
+
+            
         private:
             droidCrypto::ChannelWrapper &channel_;
             std::array<uint8_t, 16> lowmc_key_;

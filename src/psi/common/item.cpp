@@ -20,6 +20,7 @@ namespace PSI{
     }
 
     Label toLabel(const LabelMask& buf){
+        if(Label_byte_size == 0){return Label();} 
         return Label(buf.get_as<uint8_t>().subspan(Leading_zero_length,Label_byte_size));
     }
 

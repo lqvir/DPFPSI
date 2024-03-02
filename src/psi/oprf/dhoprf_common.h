@@ -11,12 +11,10 @@
 #include "psi/param.h"
 namespace PSI{
     namespace DHOPRF{
-        constexpr size_t oprf_key_size = 128;
-        constexpr size_t oprf_key_bytes = 16;
-        constexpr size_t oprf_value_bytes = oprf_key_bytes + Leading_zero_length + Label_byte_size;
+
         constexpr size_t POINT_COMPRESSED_BYTE_LEN = 33;
         constexpr  int curve_id = NID_X9_62_prime256v1 ;
-        typedef std::array<uint8_t,oprf_value_bytes> OPRFValueOpenssL;
+        typedef std::array<uint8_t,OPRFValueBytes> OPRFValueOpenssL;
         typedef std::array<uint8_t,POINT_COMPRESSED_BYTE_LEN> OPRFPoint;
         #define BasicHash(input, HASH_INPUT_LEN, output) SHA256(input, HASH_INPUT_LEN, output)
        

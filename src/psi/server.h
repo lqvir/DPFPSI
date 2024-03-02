@@ -2,6 +2,7 @@
 
 
 #include "oprf/dhoprf_sender.h"
+#include "oprf/GCOPRF_sender.h"
 #include "dpf/dpf_client.h"
 #include "common/item.h"
 #include "param.h"
@@ -19,9 +20,10 @@ namespace PSI
         class PSIServer{
         public:
             PSIServer() = default;
-            PSIServer(size_t server_set_size):server_set_size_(server_set_size){
+
+            PSIServer(size_t server_set_size,droidCrypto::ChannelWrapper& chan):server_set_size_(server_set_size),GCOPRFSender(chan){
             };
-            std::vector<LabelMask> init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
+            std::vector<LabelMask> init_GC(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
             std::vector<LabelMask> init_FourQ(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
             std::vector<DHOPRF::OPRFPoint> process_query(const std::vector<DHOPRF::OPRFPoint>& input);
             std::vector<DHOPRF::OPRFPoint> process_query_thread(const std::vector<DHOPRF::OPRFPoint>& input);
@@ -32,13 +34,18 @@ namespace PSI
             // std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(const DPF::DPFKeyList& keylist);
             // std::shared_ptr<DPF::DPFResponseList> DPFShareFullEval(const std::shared_ptr<DPF::DPFKeyEarlyTerminalList> keylist);
             std::unique_ptr<DPF::DPFResponseList> DPFShareFullEval(const std::unique_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList>& keylist);
-            void start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
-            void run(std::vector<Channel>& chlsC);
+            void DHBasedPSI_start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
+            void GCBasedPSI_start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label);
+
+            void runDH(std::vector<Channel>& chlsC);
+            void runGC(std::vector<Channel>& chlsC);
+
         private:
             std::vector<LabelMask> hash_table;
-
+            size_t Coummunication_Cost;
             size_t server_set_size_;
             DHOPRF::OPRFSender DHOPRFSender;
+            GCOPRF::OPRFSender GCOPRFSender;
         };
 
 

@@ -127,7 +127,7 @@ namespace PSI{
                 unsigned char* buffer = new unsigned char[POINT_COMPRESSED_BYTE_LEN];
                 auto len = EC_POINT_point2oct(curve,temp,POINT_CONVERSION_COMPRESSED,buffer,POINT_COMPRESSED_BYTE_LEN,ctx_ecc);
       
-                util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,out[idx].data(),oprf_value_bytes);
+                util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,out[idx].data(),OPRFValueBytes);
             }
             EC_POINT_free(temp);
 
@@ -153,7 +153,7 @@ namespace PSI{
                     EC_POINT_mul(curve,temp,NULL,temp,key_inv[idx],ctx);
                     unsigned char* buffer = new unsigned char[POINT_COMPRESSED_BYTE_LEN];
                     auto len = EC_POINT_point2oct(curve,temp,POINT_CONVERSION_COMPRESSED,buffer,POINT_COMPRESSED_BYTE_LEN,ctx);
-                    util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,out[idx].data(),oprf_value_bytes);
+                    util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,out[idx].data(),OPRFValueBytes);
 
                 }
 

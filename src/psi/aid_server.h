@@ -22,7 +22,8 @@ namespace PSI{
                 const std::vector<LabelMask>& hash_table_input
                 );
             void run(const std::vector<LabelMask>& input,std::vector<Channel>& chlsC);
-            void start(std::string SelfAddress,std::string ServerAddress);
+            void DHBasedPSI_start(std::string SelfAddress,std::string ServerAddress);
+            void GCBasedPSI_start(std::string SelfAddress,std::string ServerAddress);
             
         private:
 

@@ -5,119 +5,9 @@
 #include "psi/client.h"
 #include "psi/common/stopwatch.h"
 #include <algorithm>
-void test_server(){
-    std::vector<PSI::Item> items;
-    items.emplace_back(0x123,0x456);
-    std::vector<PSI::Label> label;
-    PSI::Label test(std::array<uint8_t,PSI::Label_byte_size>{1,2,3,4,5,6,7,8});
-    label.emplace_back(std::array<uint8_t,PSI::Label_byte_size>{1,2,3,4,5,6,7,8});
-    label.emplace_back(std::array<uint8_t,PSI::Label_byte_size>{2,2,3,4,5,6,7,8});
-    label.emplace_back(std::array<uint8_t,PSI::Label_byte_size>{3,2,3,4,5,6,7,8});
-
-    PSI::Server::PSIServer server(1);
-    server.init(items,label);
-
-}
-void test_cuckoo(){
-    std::vector<PSI::Item> items;
-    items.emplace_back(0x123,0x456);
-    items.emplace_back(0x125,0x458);
-    items.emplace_back(0x128,0x459);
-
-    std::vector<PSI::Label> label(3);
-    label[0] = std::string("0012345");
-    label[1] = std::string("1012345");
-    label[2] = std::string("2012345");
-
-    PSI::Server::PSIServer server(3);
-    PSI::Client::PSIClient client(3);
-
-    server.init(items,label);
-    auto query = client.OPRFQuery(items);
-    auto response = server.process_query(query);
-    auto value = client.OPRFResponse(response);
-    client.Cuckoo_All_location(value);
-
-}
-
-void test_DPF(){
-    std::vector<PSI::Item> items;
-    items.emplace_back(0x123,0x456);
-    items.emplace_back(0x125,0x458);
-    items.emplace_back(0x128,0x459);
-
-    std::vector<PSI::Label> label(3);
-    label[0] = std::string("0012345");
-    label[1] = std::string("1012345");
-    label[2] = std::string("2012345");
-
-    PSI::Server::PSIServer server(3);
-    PSI::Client::PSIClient client(3);
-    PSI::AidServer::AidServer aidserver;
-
-    auto hash_table = server.init(items,label);
-    
-    auto query = client.OPRFQuery(items);
-    auto response = server.process_query(query);
-    auto value = client.OPRFResponse(response);
-    client.Cuckoo_All_location(value);
-    // PSI::DPF::DPFKeyList ks,ka;
-    // client.DPFGen(ks,ka);
 
 
-    // client.DictGen(response_s,response_a);
-    client.InsectionCheck(value,items);
-}
 
-void test_unbanlanced(){
-
-    std::vector<PSI::Item> ServerSet;
-    std::vector<PSI::Item> ReceiverSet;
-
-    for(size_t idx = 101; idx < 101+4 ; idx ++){
-        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
-        ServerSet.emplace_back(0x123+idx,0x456*idx);   
-    }
-    
-    for(size_t idx = 233; idx < 245 ; idx ++){
-        ServerSet.emplace_back(0x789+idx,0xABC*idx);   
-    }
-
-    for(auto x:ServerSet){
-        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-    }
-    for(auto x:ReceiverSet){
-        PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-    }
-    auto sender_size = ServerSet.size();
-    auto receiver_size = ReceiverSet.size();
-    std::vector<PSI::Label> label(sender_size);
-    for(size_t idx = 0 ; idx < sender_size ; idx ++){
-        label[idx] = std::string("00000");
-    }
-
-    PSI::Server::PSIServer server(sender_size);
-    PSI::Client::PSIClient client(receiver_size);
-    PSI::AidServer::AidServer aidserver;
-
-    auto hash_table = server.init(ServerSet,label);
-    
-    auto query = client.OPRFQuery(ReceiverSet);
-    auto response = server.process_query(query);
-    auto value = client.OPRFResponse(response);
-    client.Cuckoo_All_location(value);
-    // aidserver.init(hash_table);
-    // PSI::DPF::DPFKeyList ks,ka;
-    // client.DPFGen(ks,ka);
-
-    // auto response_s = server.DPFShare(ks);
-    // auto response_a = aidserver.DPFShare(ka,hash_table);
-
-  /*  client.DictGen(response_s,response_a);
-    client.InsectionCheck(value,ReceiverSet);*/
-
-
-}
 void testXor(){
     PSI::LabelMask a{std::array<uint8_t,PSI::Mask_byte_size>{1,2,3,4,5,6,7,8}};
     PSI::LabelMask b{std::array<uint8_t,PSI::Mask_byte_size>{0}};
@@ -127,124 +17,7 @@ void testXor(){
 
 
 
-// void test_unbanlancedFullEval(){
 
-//     std::vector<PSI::Item> ServerSet;
-//     std::vector<PSI::Item> ReceiverSet;
-
-//     for(size_t idx = 0; idx < 16 ; idx ++){
-//         ReceiverSet.emplace_back(0x123+idx,0x456*idx);
-//         ServerSet.emplace_back(0x123+idx,0x456*idx);   
-//     }
-    
-//     for(size_t idx = 0; idx < 65520 ; idx ++){
-//         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
-//     }
-
-//     for(auto x:ServerSet){
-//         PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-//     }
-//     for(auto x:ReceiverSet){
-//         PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-//     }
-//     auto sender_size = ServerSet.size();
-//     auto receiver_size = ReceiverSet.size();
-//     std::vector<PSI::Label> label(sender_size);
-//     std::string label_m("00000");
-//     for(size_t idx = 0 ; idx < sender_size ; idx ++){
-//         label[idx] = label_m;
-//         label_m[0] += 1;
-        
-//     }
-
-//     PSI::Server::PSIServer server(sender_size);
-//     PSI::Client::PSIClient client(receiver_size);
-//     PSI::AidServer::AidServer aidserver;
-
-//     auto hash_table = server.init(ServerSet,label);
-    
-//     auto query = client.OPRFQuery(ReceiverSet);
-//     auto response = server.process_query(query);
-//     auto value = client.OPRFResponse(response);
-//     client.Cuckoo_All_location(value);
-//     PSI::DPF::DPFKeyList ks,ka;
-//     client.DPFGen(ks,ka);
-
-
-//     auto response_s = server.DPFShareFullEval(ks);
-//     auto response_a = aidserver.DPFShareFullEval(ka,hash_table);
-
-//     //client.DictGen(response_s,response_a);
-//     //client.InsectionCheck(value,ReceiverSet);
-
-
-// }
-
-void test_early_terminal(){
-    PSI::StopWatch clocks("early");
-    std::vector<PSI::Item> ServerSet;
-    std::vector<PSI::Item> ReceiverSet;
-    clocks.setpoint("start");
-    for(size_t idx = 0; idx < 5000 ; idx ++){
-        ReceiverSet.emplace_back(0x123+idx,0x456*idx);
-        ServerSet.emplace_back(0x123+idx,0x456*idx);   
-    }
-    
-    for(size_t idx = 0; idx < 50000 ; idx ++){
-        ServerSet.emplace_back(0x789+idx,0xABC*idx);   
-    }
-
-    // for(auto x:ServerSet){
-    //     PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-    // }
-    // for(auto x:ReceiverSet){
-    //     PSI::util::printchar(x.get_as<uint8_t>().data(),16);
-    // }
-    auto sender_size = ServerSet.size();
-    auto receiver_size = ReceiverSet.size();
-    std::vector<PSI::Label> label(sender_size);
-    std::string label_m("00000");
-    for(size_t idx = 0 ; idx < sender_size ; idx ++){
-        label[idx] = label_m;
-        label_m[0] += 1;
-        
-    }
-    clocks.setpoint("prepare data finish");
-    std::cout << __LINE__ << std::endl;
-
-    PSI::Server::PSIServer server(sender_size);
-    PSI::Client::PSIClient client(receiver_size);
-    PSI::AidServer::AidServer aidserver;
-    auto hash_table = server.init(ServerSet,label);
-    clocks.setpoint("prepare data finish");
-
-    auto query = client.OPRFQuery(ReceiverSet);
-    auto response = server.process_query(query);
-    auto value = client.OPRFResponse(response);
-    clocks.setpoint("oprf finish ");
-    std::cout << __LINE__ << std::endl;
-
-    client.Cuckoo_All_location(value);
-    std::cout << __LINE__ << std::endl;
-
-    clocks.setpoint("cuckoo finish ");
-
-    std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-    std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ka = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
-
-
-    client.DPFGen(ks,ka);
-    clocks.setpoint("key generate finish ");
-    auto response_s = server.DPFShareFullEval(ks);
-    auto response_a = aidserver.DPFShareFullEval(ka, hash_table);
-
-    clocks.setpoint("Full Eval finish ");
-
-    client.DictGen(response_s,response_a);
-    client.InsectionCheck(value,ReceiverSet);
-    clocks.setpoint("ALL Eval finish ");
-    clocks.printTimePointRecord();
-}
 
 #include "psi/common/Network/Session.h"
 #include "psi/common/Network/IOService.h"
@@ -273,7 +46,6 @@ void Test2(){
         ReceiverSet.emplace_back(temp[0],temp[1]);
     }
 
-    PSI::Server::PSIServer server(Ssize);
     PSI::IOService iosS;
     PSI::IOService iosA;
     PSI::Session sessionS(iosS,"127.0.0.1:50000",PSI::SessionMode::Server);
@@ -286,15 +58,21 @@ void Test2(){
     for(auto &chl : chlsA){
         chl = sessionA.addChannel();
     }
-    auto hash_table = server.init_FourQ(ServerSet,label);
     for(size_t idx = 0; idx < 32;idx++){
         ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
     }
     auto lambdaClient = [&](){
-        PSI::Client::PSIClient client(Rsize);
-        client.run("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
+        droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
+
+        PSI::Client::PSIClient client(Rsize,chanc);
+        client.DHBasedPSI_start("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
 
     };
+
+    droidCrypto::CSocketChannel chans("127.0.0.1", 8000, true);
+
+    PSI::Server::PSIServer server(Ssize,chans);
+    auto hash_table = server.init_FourQ(ServerSet,label);
     auto lambdaAidServer = [&](){
         PSI::AidServer::AidServer aidserver;
         aidserver.run(hash_table,chlsA);
@@ -302,7 +80,7 @@ void Test2(){
     auto threads = std::async(lambdaAidServer);
 
     auto threadc = std::async(lambdaClient);
-    server.run(chlsS);
+    server.runDH(chlsS);
 
 
     threadc.get();
@@ -343,13 +121,15 @@ void Test3(){
     size_t Rsize = 1024;
     size_t Ssize = 1048576;
     std::vector<PSI::Label> label(Ssize);
-    for(size_t idx = 0;idx < Ssize; idx++){
-        uint64_t temp[2];
-        RAND_bytes((uint8_t*)temp,16);
-        ServerSet.emplace_back(temp[0],temp[1]);
-        RAND_bytes((uint8_t*)temp,16);
-        label.emplace_back(temp[0],temp[1]);
-    }
+        for(size_t idx = 0;idx < Ssize; idx++){
+            uint64_t temp[2];
+            RAND_bytes((uint8_t*)temp,16);
+            ServerSet.emplace_back(temp[0],temp[1]);
+            if(PSI::Label_byte_size != 0){
+                RAND_bytes((uint8_t*)temp,16);
+                label.emplace_back(temp[0],temp[1]);
+            }   
+        }
     for(size_t idx = 0; idx < Rsize; idx++){
         uint64_t temp[2];
         RAND_bytes((uint8_t*)temp,16);
@@ -359,22 +139,78 @@ void Test3(){
     for(size_t idx = 0; idx < 32;idx++){
         ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
     }
-    PSI::Server::PSIServer server(Ssize);
     
     auto lambdaClient = [&](){
-        PSI::Client::PSIClient client(Rsize);
+        droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
 
-        client.run("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
+        PSI::Client::PSIClient client(Rsize,chanc);
+
+        client.DHBasedPSI_start("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
 
     };
     auto lambdaAidServer = [&](){
         PSI::AidServer::AidServer aidserver;
-        aidserver.start("127.0.0.1:50002","127.0.0.1:50001");
+        aidserver.DHBasedPSI_start("127.0.0.1:50002","127.0.0.1:50001");
     };
     auto threads = std::async(lambdaAidServer);
 
     auto threadc = std::async(lambdaClient);
-    server.start("127.0.0.1:50000","127.0.0.1:50002",ServerSet,label);
+    droidCrypto::CSocketChannel chans("127.0.0.1", 8000, true);
+    
+    PSI::Server::PSIServer server(Ssize,chans);
+
+    server.DHBasedPSI_start("127.0.0.1:50000","127.0.0.1:50002",ServerSet,label);
+    threadc.get();
+    threads.get();
+
+}
+
+void TestGC(){
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    size_t Rsize = 1024;
+    size_t Ssize = 1048576;
+    std::vector<PSI::Label> label(Ssize);
+        for(size_t idx = 0;idx < Ssize; idx++){
+            uint64_t temp[2];
+            RAND_bytes((uint8_t*)temp,16);
+            ServerSet.emplace_back(temp[0],temp[1]);
+            if(PSI::Label_byte_size != 0){
+                RAND_bytes((uint8_t*)temp,16);
+                label.emplace_back(temp[0],temp[1]);
+            }   
+        }
+    for(size_t idx = 0; idx < Rsize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ReceiverSet.emplace_back(temp[0],temp[1]);
+    }
+    // ReceiverSet[0] = ServerSet[0];
+    for(size_t idx = 0; idx < 32;idx++){
+        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    }
+    
+    auto lambdaClient = [&](){
+        droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
+
+        PSI::Client::PSIClient client(Rsize,chanc);
+
+        client.GCBasedPSI_start("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
+
+    };
+    auto lambdaAidServer = [&](){
+        PSI::AidServer::AidServer aidserver;
+        aidserver.GCBasedPSI_start("127.0.0.1:50002","127.0.0.1:50001");
+    };
+    auto threads = std::async(lambdaAidServer);
+
+    auto threadc = std::async(lambdaClient);
+    droidCrypto::CSocketChannel chans("127.0.0.1", 8000, true);
+    
+    PSI::Server::PSIServer server(Ssize,chans);
+
+    server.GCBasedPSI_start("127.0.0.1:50000","127.0.0.1:50002",ServerSet,label);
     threadc.get();
     threads.get();
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "oprf/dhoprf_receiver.h"
+#include "oprf/GCOPRF_receiver.h"
 #include "dpf/dpf_server.h"
 #include "param.h"
 
@@ -20,7 +21,7 @@ namespace PSI{
         class PSIClient{
             public:
                 PSIClient() = default;
-                PSIClient(size_t client_set_size):client_set_size_(client_set_size){};
+                PSIClient(size_t client_set_size,droidCrypto::ChannelWrapper& chan):client_set_size_(client_set_size),GCOPRFReceiver(chan){};
                 std::vector<DHOPRF::OPRFPoint> OPRFQuery(const std::vector<Item>& input);
                 std::vector<DHOPRF::OPRFPoint> OPRFQueryThread(const std::vector<Item>& input);
                 std::vector<DHOPRF::OPRFValueOpenssL> OPRFResponse(const std::vector<DHOPRF::OPRFPoint>& response);
@@ -31,13 +32,8 @@ namespace PSI{
                 std::vector<DHOPRF::OPRFValueOpenssL> OPRFResponseFourQ(const std::vector<DHOPRF::OPRFPointFourQ>& response);
                 std::vector<DHOPRF::OPRFValueOpenssL> OPRFResponseThreadFourQ(const std::vector<DHOPRF::OPRFPointFourQ>& response);
                 void Cuckoo_All_location(const std::vector<DHOPRF::OPRFValueOpenssL>& oprf_input);
-                // void DPFGen(
-                //     DPF::DPFKeyList& Ks,DPF::DPFKeyList& Ka
-                // );
-                // void DPFGen(
-                //     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ks,
-                //     std::shared_ptr<PSI::DPF::DPFKeyEarlyTerminalList> Ka
-                // );
+                void Cuckoo_All_location(const std::unique_ptr<std::vector<GCOPRF::GCOPRFValue>>& oprf_input);
+   
               void DPFGen(
                     const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>& Ks,
                     const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>& Ka
@@ -50,12 +46,14 @@ namespace PSI{
                 );
 
                 void InsectionCheck(std::vector<DHOPRF::OPRFValueOpenssL>& oprf_input,const std::vector<Item>& input);
-
+                void InsectionCheck(const std::unique_ptr<std::vector<PSI::GCOPRF::GCOPRFValue>>& oprf_input,const std::vector<Item>& input);
                 void run(std::string ServerAddress,std::string AidServerAddress,std::unique_ptr<std::vector<Item>> input);
-                void run(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input);
+                void DHBasedPSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input);
+                void GCBasedPSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input);
                 
             private:
                 DHOPRF::OPRFReceiver DHOPRFReceiver;
+                GCOPRF::OPRFReciver GCOPRFReceiver;
                 size_t client_set_size_;
                 std::vector<std::vector<size_t>> IndexSets_by_block; 
                 std::unordered_map<size_t,LabelMask> Dict;

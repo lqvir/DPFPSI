@@ -53,7 +53,7 @@ void test_hashitems(){
     std::span<PSI::Item> input(input_V.data(),10);
     auto value = oprfsender.ComputeHashes(input);
     for(auto x: value){
-        PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
+        PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
     }
 }
 void testReceiver(){
@@ -144,11 +144,11 @@ void testOPRF(){
     auto response = oprfsender.ProcessQueriesThread(query);
     auto rvalue = oprfreceier.process_response_threads(response);
     for(auto x:value){
-         PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
+         PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
     }
     std::cout << std::endl;
     for(auto x:rvalue){
-         PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
+         PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
     }
 }
 void test_OPRF_FourQ(){
@@ -189,11 +189,11 @@ void test_OPRF_FourQ(){
     auto rvalue = oprfreceier.process_response_threadsFourQ(response);
 
     for(auto x:value){
-         PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
+         PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
     }
     std::cout << std::endl;
     for(auto x:rvalue){
-         PSI::util::printchar((unsigned char*) x.data(),oprf_value_bytes);
+         PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
     }
 
 
@@ -298,14 +298,17 @@ void test_lowerMC(){
         PSI::GCOPRF::OPRFReciver r(chanc);
 
         r.base(8);
-        r.Online(std::move(recevierinput));
+        auto x = r.Online(std::move(recevierinput));
+        PSI::util::printchar((*x)[0].data(),PSI::OPRFValueBytes);
     };
     auto threads = std::async(routine);
         printf("%d\n",__LINE__);
 
     droidCrypto::CSocketChannel chans("127.0.0.1", 8000, true);
     PSI::GCOPRF::OPRFSender s(chans);
-    s.setup(std::move(senderinput));
+    auto sout = s.setup(std::move(senderinput));
+    PSI::util::printchar((*sout)[0].data(),PSI::OPRFValueBytes);
+
     s.base();
     s.Online();
     threads.get();

@@ -8,6 +8,7 @@
 #include <endian.h>
 #include <droidCrypto/utils/Log.h>
 #include "psi/common/thread_pool_mgr.h"
+#include "psi/common/utils.h"
 
 extern "C" {
     #include <droidCrypto/lowmc/lowmc_pars.h>
@@ -26,7 +27,7 @@ namespace PSI
 
         OPRFSender::OPRFSender(droidCrypto::ChannelWrapper& chan) :  channel_(chan), circ_(chan) {};
 
-        void OPRFSender::setup(std::unique_ptr<std::vector<droidCrypto::block>> elements){
+        std::unique_ptr<std::vector<GCOPRFValue>> OPRFSender::setup(std::unique_ptr<std::vector<droidCrypto::block>> elements){
             auto time0 = std::chrono::high_resolution_clock::now();
             size_t num_server_elements = elements->size();
             size_t num_threads_ = ThreadPoolMgr::GetThreadCount();
@@ -67,15 +68,16 @@ namespace PSI
             for(size_t thrd = 0; thrd < num_threads_ -1; thrd++) {
                 threads[thrd].join();
             }
+            auto output = std::make_unique<std::vector<GCOPRFValue>>();
+            output->resize(num_server_elements);
             for(size_t ele = 0; ele < num_server_elements; ele++){
-                auto temp = (uint8_t*)&(*elements)[ele];
-                for(size_t idx = 0; idx < 16; idx ++){
-                    printf("%02x", temp[idx]);
-                }
-                printf("\n");
-            }
-            auto time1 = std::chrono::high_resolution_clock::now();
+                util::blake2b512(&(*elements)[ele],16,&(*output)[ele],OPRFValueBytes);
 
+                // memcpy(&(*output)[ele],&(*elements)[ele],16);
+            }
+
+            auto time1 = std::chrono::high_resolution_clock::now();
+            return std::move(output);
         }
 
         void OPRFSender::base(){

@@ -9,27 +9,22 @@ namespace PSI
 {
     namespace Server
     {
-        std::vector<LabelMask> PSIServer::init(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
-            PSI::StopWatch clocks("init");
-            clocks.setDurationStart("oprf");
-            DHOPRFSender.init();
-            auto output = DHOPRFSender.ComputeHashes(input);
-            clocks.setDurationEnd("oprf");
-            std::cout << __LINE__ << std::endl;
+        std::vector<LabelMask> PSIServer::init_GC(const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
+         
+            // GC OPRF Prepare
+  
 
-            clocks.printDurationRecord();
-            std::cout << __LINE__ << std::endl;
-            
-#if  LogLevel == 0
-
-
-
-            std::cout << "oprf_value" <<std::endl;;
-
-            for(auto x : output){
-                util::printchar((uint8_t*)x.data(),x.size());
+            auto elements = std::make_unique<std::vector<droidCrypto::block>>();
+            for(auto item : input){
+                elements->emplace_back(droidCrypto::toBlock(item.get_as<uint8_t>().data()));
             }
-#endif 
+
+            auto output =  GCOPRFSender.setup(std::move(elements));
+
+
+            std::cout << __LINE__ << std::endl;
+
+            
             kuku::KukuTable cuckoo_table(
                 cuckoo::table_size,      // Size of the hash table
                 0,                                      // Not using a stash
@@ -38,7 +33,7 @@ namespace PSI
                 cuckoo::cuckoo_table_insert_attempts,           // The number of insertion attempts
                 { 0, 0 });
             for (size_t item_idx = 0; item_idx < server_set_size_; item_idx++){
-                const auto &item = output[item_idx];
+                const auto &item = (*output)[item_idx];
                 if (!cuckoo_table.insert(kuku::make_item((uint8_t*)item.data()))) {
                     // Insertion can fail for two reasons:
                     //
@@ -65,10 +60,10 @@ namespace PSI
             }
             hash_table.resize(cuckoo::table_size);
             for (size_t item_idx = 0; item_idx < server_set_size_; item_idx++) {
-                const auto &item = output[item_idx];
+                const auto &item = (*output)[item_idx];
 
                 auto item_loc = cuckoo_table.query(kuku::make_item((uint8_t*)item.data())).location();
-                memcpy(hash_table[item_loc].value().data(),output[item_idx].data()+16,Leading_zero_length+Label_byte_size);
+                memcpy(hash_table[item_loc].value().data(),(*output)[item_idx].data()+16,Leading_zero_length+Label_byte_size);
                 // hash_table[item_loc] = std::array<uint8_t,24>(output[item_idx].begin()+16,output[item_idx].end());
                 // hash_table[item_loc] = output[item_idx].data()(16,Leading_zero_length+Label_byte_size);
 #if LogLevel == 0           
@@ -77,8 +72,8 @@ namespace PSI
                 util::printchar((uint8_t*)hash_table[item_loc].value().data(),Leading_zero_length+Label_byte_size);
                 util::printchar((uint8_t*)input_Label[item_idx].get_as<uint8_t>().data(),Label_byte_size);
 #endif            
-                
-                util::xor_buffers((uint8_t*)(hash_table[item_loc].value().data()+Leading_zero_length),(uint8_t*)input_Label[item_idx].get_as<uint8_t>().data(),Label_byte_size);
+                if(Label_byte_size)
+                    util::xor_buffers((uint8_t*)(hash_table[item_loc].value().data()+Leading_zero_length),(uint8_t*)input_Label[item_idx].get_as<uint8_t>().data(),Label_byte_size);
                 // itt.table_idx_to_item_idx_[item_loc.location()] = item_idx;
             }
 #if LogLevel == 0
@@ -156,8 +151,8 @@ namespace PSI
                 util::printchar((uint8_t*)hash_table[item_loc].value().data(),Leading_zero_length+Label_byte_size);
                 util::printchar((uint8_t*)input_Label[item_idx].get_as<uint8_t>().data(),Label_byte_size);
 #endif            
-                
-                util::xor_buffers((uint8_t*)(hash_table[item_loc].value().data()+Leading_zero_length),(uint8_t*)input_Label[item_idx].get_as<uint8_t>().data(),Label_byte_size);
+                if(PSI::Label_byte_size!=0)
+                    util::xor_buffers((uint8_t*)(hash_table[item_loc].value().data()+Leading_zero_length),(uint8_t*)input_Label[item_idx].get_as<uint8_t>().data(),Label_byte_size);
                 // itt.table_idx_to_item_idx_[item_loc.location()] = item_idx;
             }
 #if LogLevel == 0
@@ -197,7 +192,7 @@ namespace PSI
             return std::move(DPF::DPFClient::FullEval(keylist,hash_table,0));
         }
 
-        void PSIServer::start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
+        void PSIServer::DHBasedPSI_start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
             StopWatch clocks("PSIServer");
             IOService ios;
             Session SessionC(ios,SelfAddress,SessionMode::Server);
@@ -218,25 +213,61 @@ namespace PSI
             clocks.setDurationEnd("Offline");
             // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
 
-            run(chlsC);
+            runDH(chlsC);
             for(auto &chl : chlsC){
 
                 chl.close();
             }
-            size_t cnt = 0;
             for(auto &chl : chlsA){
-                cnt += chl.getTotalDataSent()+chl.getTotalDataRecv();
+                Coummunication_Cost += chl.getTotalDataSent()+chl.getTotalDataRecv();
                 chl.close();
             }
-            std::cout <<"off com size"<<cnt / 1024.0/1024.0  << std::endl;
+            std::cout <<"off com size"<<Coummunication_Cost / 1024.0/1024.0  << std::endl;
             clocks.printDurationRecord();
             SessionA.stop();
             SessionC.stop();
             ios.stop();
         }
-        
+        void PSIServer::GCBasedPSI_start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
+            StopWatch clocks("PSIServer");
+            IOService ios;
+            Session SessionC(ios,SelfAddress,SessionMode::Server);
+            Session SessionA(ios,AidAddress,SessionMode::Client);
 
-        void PSIServer::run(std::vector<Channel>& chlsC){
+            std::vector<Channel> chlsC(ThreadPoolMgr::GetThreadCount());
+            std::vector<Channel> chlsA(ThreadPoolMgr::GetThreadCount());
+            for(auto &chl : chlsC){
+                chl = SessionC.addChannel(); 
+            }
+            for(auto &chl : chlsA){
+                chl = SessionA.addChannel(); 
+            }
+            clocks.setDurationStart("Offline");
+                
+            auto hash_table = init_GC(input,input_Label);
+    
+            chlsA[0].send(reinterpret_cast<uint8_t*>(hash_table.data()),Mask_byte_size*cuckoo::table_size);
+            clocks.setDurationEnd("Offline");
+            // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+
+            runGC(chlsC);
+            for(auto &chl : chlsC){
+
+                chl.close();
+            }
+            for(auto &chl : chlsA){
+                Coummunication_Cost += chl.getTotalDataSent()+chl.getTotalDataRecv();
+                chl.close();
+            }
+            std::cout <<"off com size"<<Coummunication_Cost / 1024.0/1024.0  << std::endl;
+            clocks.printDurationRecord();
+            SessionA.stop();
+            SessionC.stop();
+            ios.stop();
+        }
+
+        void PSIServer::runDH(std::vector<Channel>& chlsC){
+
 
             std::vector<DHOPRF::OPRFPointFourQ> query(server_set_size_);
             chlsC[0].recv(query);
@@ -244,6 +275,19 @@ namespace PSI
             chlsC[0].send(response);
 
             std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> ks = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
+            chlsC[0].recv(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
+            auto response_s = DPFShareFullEval(ks);
+            chlsC[0].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));
+
+        }
+
+        void PSIServer::runGC(std::vector<Channel>& chlsC){
+
+
+            GCOPRFSender.base();
+            GCOPRFSender.Online();
+
+            auto ks = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
             chlsC[0].recv(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
             auto response_s = DPFShareFullEval(ks);
             chlsC[0].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));

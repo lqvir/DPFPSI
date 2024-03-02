@@ -21,11 +21,39 @@ namespace PSI{
 
             chlsC[0].send(reinterpret_cast<uint8_t*>(response_a.get()),sizeof(PSI::DPF::DPFResponseList));
             
-    
-
         }
 
-        void AidServer::start(std::string ServerAddress,std::string ClientAddress){
+        void AidServer::DHBasedPSI_start(std::string ServerAddress,std::string ClientAddress){
+            IOService ios;
+            Session sessionS(ios,ServerAddress,SessionMode::Server);
+            Session sessionC(ios,ClientAddress,SessionMode::Server);
+
+            std::vector<Channel> chlsS(ThreadPoolMgr::GetThreadCount());
+            std::vector<Channel> chlsC(ThreadPoolMgr::GetThreadCount());
+            for(auto& chl:chlsC){
+                chl = sessionC.addChannel();
+            } 
+            for(auto& chl:chlsS){
+                chl = sessionS.addChannel();
+            } 
+            std::vector<LabelMask> CuckooTable(cuckoo::table_size);
+            chlsS[0].recv(reinterpret_cast<uint8_t*>(CuckooTable.data()),Mask_byte_size*cuckoo::table_size);
+
+            run(CuckooTable,chlsC);
+            
+            
+            for(auto &chl : chlsC){
+                chl.close();
+            }
+            for(auto &chl : chlsS){
+                chl.close();
+            }
+            sessionS.stop();
+            sessionC.stop();
+            ios.stop();
+        }
+
+        void AidServer::GCBasedPSI_start(std::string ServerAddress,std::string ClientAddress){
             IOService ios;
             Session sessionS(ios,ServerAddress,SessionMode::Server);
             Session sessionC(ios,ClientAddress,SessionMode::Server);

@@ -35,7 +35,7 @@ namespace PSI{
             using point_save_span_const_type = gsl::span<const unsigned char, save_size>;
 
             // Output hash size is 32 bytes: 16 for item hash and 16 for label encryption key
-            static constexpr std::size_t hash_size = oprf_value_bytes;
+            static constexpr std::size_t hash_size = OPRFValueBytes;
 
             using hash_span_type = gsl::span<unsigned char, hash_size>;
 

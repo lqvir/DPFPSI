@@ -14,7 +14,7 @@ namespace PSI{
 
         class OPRFSender {
         public:
-            OPRFSender() = default;
+            OPRFSender();
             ~OPRFSender();
 
             // Prepare OPRF key and ECGROUP

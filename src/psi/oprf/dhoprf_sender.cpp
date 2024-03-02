@@ -8,11 +8,9 @@ void test_func(){
 namespace PSI{
     namespace DHOPRF{
         int OPRFSender::init(){
-            curve = EC_GROUP_new_by_curve_name(curve_id);
-            ctx_b = BN_CTX_new();
-            oprf_key = BN_new();
-            uint8_t key_array[oprf_key_bytes];
-            // RAND_bytes(key_array,oprf_key_bytes);
+
+            uint8_t key_array[OPRFKeyBytesNumber];
+            // RAND_bytes(key_array,OPRFKeyBytesNumber);
             // BN_bin2bn(key_array,oprf_key_bytes,oprf_key);
             
             // non zero
@@ -23,7 +21,7 @@ namespace PSI{
             // }
             // uint8_t *pub;
             // point_hex_len = EC_POINT_point2buf(curve, EC_GROUP_get0_generator(curve),POINT_CONVERSION_COMPRESSED,&pub,ctx_b);
-            BIGNUM*   curve_params_p = BN_new(); 
+            BIGNUM* curve_params_p = BN_new(); 
             BIGNUM* curve_params_a = BN_new();
             BIGNUM* curve_params_b = BN_new(); 
             EC_GROUP_get_curve(curve, curve_params_p, curve_params_a, curve_params_b, ctx_b) ;
@@ -32,6 +30,12 @@ namespace PSI{
             assert((BN_BYTE_LEN+1) == POINT_COMPRESSED_BYTE_LEN);
             point_hex_len = 33;
             return 0;
+        }
+
+        OPRFSender::OPRFSender(){
+            curve = EC_GROUP_new_by_curve_name(curve_id);
+            ctx_b = BN_CTX_new();
+            oprf_key = BN_new();
         }
 
         OPRFSender::~OPRFSender(){
@@ -67,7 +71,7 @@ namespace PSI{
             // std::cout << std::endl;
             OPRFValueOpenssL result;
             
-            util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,result.data(),oprf_value_bytes);
+            util::blake2b512(buffer,POINT_COMPRESSED_BYTE_LEN,result.data(),OPRFValueBytes);
             delete [] buffer;
             return result; 
         }
