@@ -174,6 +174,10 @@ target_sources(psitest PRIVATE ${PSI_TEST_FILES})
 
 target_link_libraries(psitest PRIVATE psi)
 target_link_libraries(psitest PRIVATE OpenMP::OpenMP_CXX)
+
+add_subdirectory(cli)
+
+
 # target_link_libraries(psitest PRIVATE Catch2::Catch2WithMain)
 # catch_discover_tests(psitest)
 

@@ -20,7 +20,7 @@ namespace PSI{
 
         class PSIClient{
             public:
-                PSIClient() = default;
+                PSIClient() = delete;
                 PSIClient(size_t client_set_size,droidCrypto::ChannelWrapper& chan):client_set_size_(client_set_size),GCOPRFReceiver(chan){};
                 std::vector<DHOPRF::OPRFPoint> OPRFQuery(const std::vector<Item>& input);
                 std::vector<DHOPRF::OPRFPoint> OPRFQueryThread(const std::vector<Item>& input);
