@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     serverclocks.setpoint("start");
 
-    server.DHBasedPSI_start("127.0.0.1:50000","127.0.0.1:50001",ServerSet,LabelSet);
+    server.DHBasedPSI_start("127.0.0.1:50000","127.0.0.1:50002",ServerSet,LabelSet);
     
     serverclocks.setpoint("ALL Finish");
 

@@ -36,6 +36,7 @@ namespace PSI{
             for(auto& chl:chlsS){
                 chl = sessionS.addChannel();
             } 
+
             std::vector<LabelMask> CuckooTable(cuckoo::table_size);
             chlsS[0].recv(reinterpret_cast<uint8_t*>(CuckooTable.data()),Mask_byte_size*cuckoo::table_size);
 
