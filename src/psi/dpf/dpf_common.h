@@ -5,6 +5,7 @@
 #include "openssl/rand.h"
 #include "psi/cuckoo_hash/cuckoo.h"
 #include <bitset>
+#include <droidCrypto/AES.h>
 namespace PSI
 {
     namespace DPF
@@ -53,7 +54,7 @@ namespace PSI
 
        
  
-        typedef std::bitset<((size_t)1 << DPF_INPUT_BIT_SIZE)> pcGGMLeafList;
+        typedef std::bitset<DPF_OUTPUT_COUNT> pcGGMLeafList;
 
 
         inline void sigma(uint8_t* input){
@@ -91,16 +92,7 @@ namespace PSI
             uint8_t input_u8[Lambda_bytes];
             memcpy(input_u8,input,Lambda_bytes);
             sigma(input_u8);
-            auto ctx = EVP_CIPHER_CTX_new();
-            EVP_CIPHER_CTX_init(ctx);
-            int ret = EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, AESKEY, NULL);
-            EVP_CIPHER_CTX_set_padding(ctx, 0);
-            int mlen = 0;
-            // uint8_t out[32];
-            ret = EVP_EncryptUpdate(ctx, (unsigned char*)output, &mlen, input_u8, Lambda_bytes);
-            EVP_CIPHER_CTX_cleanup(ctx);
-            EVP_CIPHER_CTX_free(ctx);
-
+            droidCrypto::mAesFixedKey.encryptECB(droidCrypto::toBlock(input),*(__m128i*)output);
             PSI::util::xor_buffers(output,input_u8,Lambda_bytes);
         }
 
@@ -114,12 +106,26 @@ namespace PSI
             int ret = EVP_EncryptUpdate(ctx, (unsigned char*)output, &mlen, input_u8, Lambda_bytes);
             PSI::util::xor_buffers(output,input_u8,Lambda_bytes);
         }
+        inline void Keyed_hash_func(const droidCrypto::block input,droidCrypto::block& output){
+            droidCrypto::block inputcpy = input;
+            uint64_t* in_u64 =(uint64_t*)&inputcpy;
+            in_u64[1] ^= in_u64[0];
+            std::swap(in_u64[0],in_u64[1]);
+
+            auto input_u8 = _mm_set_epi64x(in_u64[1],in_u64[0]);
+
+            droidCrypto::mAesFixedKey.encryptECB(input,output);
+            output = (output) ^ input_u8;
+
+        }
 
       
         inline void Convert_to_G(const share_type& in,uint8_t *out){
             util::copy_bytes(in.data()+1,DPF_COMPRESS_NODES_BYTE_NUMBER,out);
         }
-
+        inline void Convert_to_G(const uint8_t* in,uint8_t *out){
+            util::copy_bytes(in+1,DPF_COMPRESS_NODES_BYTE_NUMBER,out);
+        }
         
     
     

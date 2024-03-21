@@ -117,7 +117,6 @@ if(CMAKE_ASM_COMPILER)
     message(STATUS "FourQlib optimization: asm=ON")
 endif()
 
-
 add_subdirectory(src/psi)
 add_subdirectory(mobile_psi_cpp)
 # set_target_properties(psi PROPERTIES LINK_FLAGS "-Wl,--stack,16777216")
@@ -171,6 +170,7 @@ set(PSI_TEST_FILES "")
 add_subdirectory(tests/psi)
 
 target_sources(psitest PRIVATE ${PSI_TEST_FILES})
+target_compile_options(psitest PUBLIC -D_AVX2_)
 
 target_link_libraries(psitest PRIVATE psi)
 target_link_libraries(psitest PRIVATE OpenMP::OpenMP_CXX)

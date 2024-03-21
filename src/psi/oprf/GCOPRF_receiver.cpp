@@ -27,9 +27,9 @@ namespace PSI
             (std::unique_ptr<std::vector<droidCrypto::block>> elements){
 
             size_t num_client_elements = elements->size();
-            
-            //do GC evaluation
+            droidCrypto::Log::v("GC", "Sent: %f, Recv: %f", channel_.getBytesSent()/1024.0/1024.0, channel_.getBytesRecv()/1024.0/1024.0);
             channel_.clearStats();
+            //do GC evaluation
             std::vector<droidCrypto::BitVector> bit_elements;
             bit_elements.reserve(elements->size());
             for(size_t i = 0; i < elements->size(); i++) {
@@ -52,6 +52,14 @@ namespace PSI
                 // printf("\n");
                 
             }
+
+            std::string time = "Time:\n\t OT:   " + std::to_string(circ_.timeBaseOT.count());
+            time += ",\n\t OTe:  " + std::to_string(circ_.timeOT.count());
+            time += ",\n\t Send: " + std::to_string(circ_.timeSendGC.count());
+            time += ",\n\t Eval: " + std::to_string(circ_.timeEval.count());
+            time += ";\n\t Total:" + std::to_string((circ_.timeBaseOT+circ_.timeOT+circ_.timeEval+circ_.timeSendGC).count());
+            droidCrypto::Log::v("GC", "%s", time.c_str());
+            droidCrypto::Log::v("GC", "Sent: %f, Recv: %f", channel_.getBytesSent()/1024.0/1024.0, channel_.getBytesRecv()/1024.0/1024.0);
 
             return std::move(output);
         }

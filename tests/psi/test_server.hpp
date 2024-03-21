@@ -118,8 +118,8 @@ void Test3(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    size_t Rsize = 1024;
-    size_t Ssize = 1048576;
+    size_t Rsize = 1;
+    size_t Ssize = 16777216;
     std::vector<PSI::Label> label(Ssize);
         for(size_t idx = 0;idx < Ssize; idx++){
             uint64_t temp[2];
@@ -135,10 +135,10 @@ void Test3(){
         RAND_bytes((uint8_t*)temp,16);
         ReceiverSet.emplace_back(temp[0],temp[1]);
     }
-    // ReceiverSet[0] = ServerSet[0];
-    for(size_t idx = 0; idx < 32;idx++){
-        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
-    }
+    ReceiverSet[0] = ServerSet[0];
+    // for(size_t idx = 0; idx < 32;idx++){
+    //     ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    // }
     
     auto lambdaClient = [&](){
         droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
@@ -169,7 +169,7 @@ void TestGC(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    size_t Rsize = 1024;
+    size_t Rsize = 1;
     size_t Ssize = 1048576;
     std::vector<PSI::Label> label(Ssize);
         for(size_t idx = 0;idx < Ssize; idx++){
@@ -186,10 +186,10 @@ void TestGC(){
         RAND_bytes((uint8_t*)temp,16);
         ReceiverSet.emplace_back(temp[0],temp[1]);
     }
-    // ReceiverSet[0] = ServerSet[0];
-    for(size_t idx = 0; idx < 32;idx++){
-        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
-    }
+    ReceiverSet[0] = ServerSet[0];
+    // for(size_t idx = 0; idx < 32;idx++){
+    //     ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    // }
     
     auto lambdaClient = [&](){
         droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);

@@ -22,12 +22,15 @@
 //     REQUIRE( Factorial(10) == 3628800 );
 // }
 
-int main(){
-    PSI::ThreadPoolMgr::SetThreadCount(16);
+int main(int argc,char* argv[]){
+    auto threadnum = std::atoi(argv[1]);
+    std::cout << threadnum << std::endl;
+    PSI::ThreadPoolMgr::SetThreadCount(threadnum);
     PSI::StopWatch clock1("All time ");
     clock1.setpoint("start");
     // Test0();
-    TestGC();
+
+    test_dpf();
     clock1.setpoint("finish early terminal");
     // test_unbanlancedFullEval();
     // clock1.setpoint("finish without early terminal");

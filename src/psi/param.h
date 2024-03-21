@@ -4,9 +4,9 @@
 namespace PSI
 {
     constexpr size_t Label_bit_size = 256;
-    constexpr size_t Label_byte_size = 0;
+    constexpr size_t Label_byte_size = 16;
 
-    constexpr size_t Leading_zero_length =  8 ;
+    constexpr size_t Leading_zero_length =  5;
     constexpr size_t Item_byte_size = 16;
     constexpr size_t Mask_byte_size = Label_byte_size + Leading_zero_length;
 
@@ -18,8 +18,11 @@ namespace PSI
     constexpr size_t OPRFValueBytes = OPRFKeyBytesNumber + Leading_zero_length + Label_byte_size;
 
     namespace DPF{
-        constexpr size_t DPF_INPUT_BIT_SIZE = 16;
-        constexpr size_t DPF_INPUT_BYTE_SIZE = 2;
+        constexpr size_t DPF_INPUT_BIT_SIZE = 8;
+        constexpr size_t DPF_INPUT_BYTE_SIZE = 1;
+        constexpr size_t DPF_OUTPUT_COUNT = 1 << DPF_INPUT_BIT_SIZE;
+        constexpr size_t DPF_OUTPUT_U64COUNT = DPF_OUTPUT_COUNT/64;
+        
         constexpr size_t Lambda = 128 ;
         constexpr size_t Lambda_bytes = 16;
 
@@ -141,7 +144,7 @@ namespace PSI
         }
 
 
-        using namespace cuckooparam220vs1024;
+        using namespace cuckooparam220vs1;
 
     } // namespace cuckoo
     

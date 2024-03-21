@@ -164,20 +164,50 @@ namespace PSI
         const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList> &Ka
                   )
     {
-
+        // Ks->resize(cuckoo::block_num);
+        // Ka->resize(cuckoo::block_num);
         for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
             auto block_size = IndexSets_by_block.at(block_id).size();
+
+            // Ks->at(block_id).resize(block_size);
+            // Ka->at(block_id).resize(block_size);
+
             for(size_t pos_id = 0; pos_id < block_size; pos_id++){
            
                 DPF::DPFServer::Gen(IndexSets_by_block.at(block_id).at(pos_id),1,Ks->at(block_id).at(pos_id),Ka->at(block_id).at(pos_id));
             }
-            for(size_t pad_idx = block_size ;pad_idx < cuckoo::max_set_size; pad_idx++){
-                Ka->at(block_id).at(pad_idx).RandomKey();
-                Ks->at(block_id).at(pad_idx).RandomKey();
-            }
+            // for(size_t pad_idx = block_size ;pad_idx < cuckoo::max_set_size; pad_idx++){
+            //     Ka->at(block_id).at(pad_idx).RandomKey();
+            //     Ks->at(block_id).at(pad_idx).RandomKey();
+            // }
         }
     
     }
+
+    void PSIClient::DPFGen(
+        const std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList> &Ks,
+        const std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList> &Ka
+                  )
+    {
+        // Ks->resize(cuckoo::block_num);
+        // Ka->resize(cuckoo::block_num);
+        for(size_t block_id = 0; block_id < cuckoo::block_num; block_id++){
+            auto block_size = IndexSets_by_block.at(block_id).size();
+
+            // Ks->at(block_id).resize(block_size);
+            // Ka->at(block_id).resize(block_size);
+
+            for(size_t pos_id = 0; pos_id < block_size; pos_id++){
+                DPF::pcGGM::GenKey(IndexSets_by_block.at(block_id).at(pos_id),1,Ks->at(block_id).at(pos_id),Ka->at(block_id).at(pos_id));
+            }
+            // for(size_t pad_idx = block_size ;pad_idx < cuckoo::max_set_size; pad_idx++){
+            //     Ka->at(block_id).at(pad_idx).RandomKey();
+            //     Ks->at(block_id).at(pad_idx).RandomKey();
+            // }
+        }
+    
+    }
+
     void PSIClient::DictGen(const std::unique_ptr<DPF::DPFResponseList>& ResponseListFromS,
         const std::unique_ptr<DPF::DPFResponseList>& ResponseListFromA){
         
@@ -312,6 +342,9 @@ namespace PSI
         for(auto &chl : chlsA){
             chl = sessionA.addChannel();
         }
+
+         std::string OK;
+        chlsS[0].recv(OK);
         clocks.setpoint("OPRFStart");
 
         auto query = OPRFQueryThreadFourQ(input);
@@ -340,8 +373,11 @@ namespace PSI
         std::unique_ptr<PSI::DPF::DPFResponseList> ResponseA = std::make_unique<PSI::DPF::DPFResponseList>();
         chlsS[0].recv(reinterpret_cast<uint8_t*>(ResponseS.get()),sizeof(PSI::DPF::DPFResponseList));
         chlsA[0].recv(reinterpret_cast<uint8_t*>(ResponseA.get()),sizeof(PSI::DPF::DPFResponseList));
+        clocks.setpoint("Dict Start");
 
         DictGen(std::move(ResponseS),std::move(ResponseA));
+        clocks.setpoint("Dict Finish");
+
         InsectionCheck(oprf_value,input);
         clocks.setpoint("Finish");
 
@@ -379,6 +415,8 @@ namespace PSI
         for(auto &chl : chlsA){
             chl = sessionA.addChannel();
         }
+        std::string OK;
+        chlsS[0].recv(OK);
         clocks.setpoint("OPRFStart");
 
         auto inputptr = std::make_unique<std::vector<droidCrypto::block>>();
@@ -386,10 +424,17 @@ namespace PSI
         for(auto input_item : input){
             inputptr->emplace_back(droidCrypto::toBlock(input_item.get_as<uint8_t>().data()));
         }
+        clocks.setDurationStart("online");
         
         GCOPRFReceiver.base(input.size());
+
+        clocks.setpoint("OPRFbase");
+
         auto oprf_value = GCOPRFReceiver.Online(std::move(inputptr));
 
+
+
+        size_t GCOPRFCom = GCOPRFReceiver.getComCost();
 
 
 
@@ -416,19 +461,24 @@ namespace PSI
         DictGen(std::move(ResponseS),std::move(ResponseA));
         InsectionCheck(std::move(oprf_value),input);
         clocks.setpoint("Finish");
-
+        clocks.setDurationEnd("online");
         clocks.printTimePointRecord();
-        size_t cnt = 0 ;
+        clocks.printDurationRecord();
+        size_t DPFCom = 0 ;
         for(auto chl : chlsS){
-            cnt += chl.getTotalDataSent() + chl.getTotalDataRecv() + GCOPRFReceiver.getComCost();
+            DPFCom += chl.getTotalDataSent() + chl.getTotalDataRecv() ;
             chl.close();
         }
 
         for(auto chl : chlsA){
-            cnt += chl.getTotalDataSent() + chl.getTotalDataRecv();
+            DPFCom += chl.getTotalDataSent() + chl.getTotalDataRecv();
             chl.close();
         }
-        std::cout << "online com" << cnt / 1024.0/1024.0 <<std::endl;
+
+        std::cout << "DPF com" << DPFCom / 1024.0/1024.0 <<std::endl;
+        std::cout << "GC com" << GCOPRFCom / 1024.0/1024.0 <<std::endl;
+        std::cout << "Client com" << (GCOPRFCom+DPFCom) / 1024.0/1024.0 <<std::endl;
+
         sessionS.stop();
         sessionA.stop();
         iosS.stop();

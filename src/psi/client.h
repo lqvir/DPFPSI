@@ -38,7 +38,10 @@ namespace PSI{
                     const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>& Ks,
                     const std::unique_ptr<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>& Ka
                 );
-
+              void DPFGen(
+                    const std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList>& Ks,
+                    const std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList>& Ka
+                );
 
                 void DictGen(
                     const std::unique_ptr<DPF::DPFResponseList>& ResponseListFromS,

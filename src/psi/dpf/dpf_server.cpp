@@ -41,9 +41,10 @@ namespace PSI
 
                 for(size_t i = DPF_INPUT_BIT_SIZE - 1; i > DPF_EARLY_BIT_SIZE; i--){
                     share_type Hs_out_1,Hs_out_0;
-                    Keyed_hash_func(share_i_0.data(),Hs_out_0.data(),ctx);
-                    Keyed_hash_func(share_i_1.data(),Hs_out_1.data(),ctx);
-
+                    // Keyed_hash_func(share_i_0.data(),Hs_out_0.data(),ctx);
+                    // Keyed_hash_func(share_i_1.data(),Hs_out_1.data(),ctx);
+                    Keyed_hash_func(share_i_0.data(),Hs_out_0.data());
+                    Keyed_hash_func(share_i_1.data(),Hs_out_1.data());
                     util::xor_buffers(CW_i.data(),Hs_out_0.data(),Hs_out_1.data(),Lambda_bytes);
                     
 
@@ -80,11 +81,14 @@ namespace PSI
             Bit_xor1_bytes(share_i_0_xor_1.data(),0);
             Bit_xor1_bytes(share_i_1_xor_1.data(),0);
 
-            Keyed_hash_func(share_i_0.data(),High_Low_super0_sub0.data(),ctx);
-            Keyed_hash_func(share_i_0_xor_1.data(),High_Low_super1_sub0.data(),ctx);
-            Keyed_hash_func(share_i_1.data(),High_Low_super0_sub1.data(),ctx);  
-            Keyed_hash_func(share_i_1_xor_1.data(),High_Low_super1_sub1.data(),ctx);
-
+            // Keyed_hash_func(share_i_0.data(),High_Low_super0_sub0.data(),ctx);
+            // Keyed_hash_func(share_i_0_xor_1.data(),High_Low_super1_sub0.data(),ctx);
+            // Keyed_hash_func(share_i_1.data(),High_Low_super0_sub1.data(),ctx);  
+            // Keyed_hash_func(share_i_1_xor_1.data(),High_Low_super1_sub1.data(),ctx);
+            Keyed_hash_func(share_i_0.data(),High_Low_super0_sub0.data());
+            Keyed_hash_func(share_i_0_xor_1.data(),High_Low_super1_sub0.data());
+            Keyed_hash_func(share_i_1.data(),High_Low_super0_sub1.data());  
+            Keyed_hash_func(share_i_1_xor_1.data(),High_Low_super1_sub1.data());
             share_type& HCW = key0.cw_n_HCW;
             if(bitcheck(alpha_uint8,DPF_EARLY_BIT_SIZE)){
                 util::xor_buffers(HCW.data(),High_Low_super0_sub0.data(),High_Low_super0_sub1.data(),Lambda_bytes);

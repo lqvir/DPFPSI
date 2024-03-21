@@ -191,7 +191,9 @@ namespace PSI
         std::unique_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::unique_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList>& keylist){
             return std::move(DPF::DPFClient::FullEval(keylist,hash_table,0));
         }
-
+        std::unique_ptr<DPF::DPFResponseList> PSIServer::DPFShareFullEval(const std::unique_ptr<DPF::pcGGM::DPFKeyList>& keylist){
+            return std::move(DPF::DPFClient::FullEval(keylist,hash_table,0));
+        }
         void PSIServer::DHBasedPSI_start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
             StopWatch clocks("PSIServer");
             IOService ios;
@@ -212,6 +214,7 @@ namespace PSI
             chlsA[0].send(reinterpret_cast<uint8_t*>(hash_table.data()),Mask_byte_size*cuckoo::table_size);
             clocks.setDurationEnd("Offline");
             // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+            clocks.setDurationStart("online");
 
             runDH(chlsC);
             for(auto &chl : chlsC){
@@ -223,6 +226,8 @@ namespace PSI
                 chl.close();
             }
             std::cout <<"off com size"<<Coummunication_Cost / 1024.0/1024.0  << std::endl;
+            clocks.setDurationEnd("online");
+
             clocks.printDurationRecord();
             SessionA.stop();
             SessionC.stop();
@@ -249,8 +254,11 @@ namespace PSI
             chlsA[0].send(reinterpret_cast<uint8_t*>(hash_table.data()),Mask_byte_size*cuckoo::table_size);
             clocks.setDurationEnd("Offline");
             // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+            clocks.setDurationStart("Online");
 
             runGC(chlsC);
+            clocks.setDurationEnd("Online");
+
             for(auto &chl : chlsC){
 
                 chl.close();
@@ -268,7 +276,8 @@ namespace PSI
 
         void PSIServer::runDH(std::vector<Channel>& chlsC){
 
-
+            chlsC[0].send("ok");
+            
             std::vector<DHOPRF::OPRFPointFourQ> query(server_set_size_);
             chlsC[0].recv(query);
             auto response = process_query_threadFourQ(query);
@@ -281,9 +290,26 @@ namespace PSI
 
         }
 
+        void PSIServer::runDHv2(std::vector<Channel>& chlsC){
+
+            chlsC[0].send("ok");
+            
+            std::vector<DHOPRF::OPRFPointFourQ> query(server_set_size_);
+            chlsC[0].recv(query);
+            auto response = process_query_threadFourQ(query);
+            chlsC[0].send(response);
+
+            std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList> ks = std::make_unique<PSI::DPF::pcGGM::DPFKeyList>();
+            chlsC[0].recv(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::pcGGM::DPFKeyList));
+            auto response_s = DPFShareFullEval(ks);
+            chlsC[0].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));
+
+        }
+
+
         void PSIServer::runGC(std::vector<Channel>& chlsC){
 
-
+            chlsC[0].send("ok");
             GCOPRFSender.base();
             GCOPRFSender.Online();
 
