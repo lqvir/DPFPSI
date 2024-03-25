@@ -56,7 +56,7 @@ void test_dpf(){
     auto ansoa = PSI::DPF::pcGGM::GenTree(oa);
     auto ansob = PSI::DPF::pcGGM::GenTree(ob);
 
-    std::cout << (PSI::bitcheck((uint8_t*)&ansc,2) ^ PSI::bitcheck((uint8_t*)&ansd,2)) << std::endl; 
+    std::cout << (PSI::bitcheck((uint8_t*)&ansc,200) ^ PSI::bitcheck((uint8_t*)&ansd,200)) << std::endl; 
 
 
     
@@ -86,7 +86,6 @@ void test_dpf(){
     // // std::cout << ansd << std::endl;
     std::cout << (anse^ansf) << std::endl;
     std::cout << (ansoa^ansob) << std::endl;
-
    // std::cout <<( (ansa^ansb) == (ansc^ansd) ) << std::endl;
 }
 

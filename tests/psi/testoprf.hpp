@@ -7,7 +7,7 @@
 
 #include "psi/oprf/GCOPRF_receiver.h"
 #include "psi/oprf/GCOPRF_sender.h"
-
+#include "psi/common/stopwatch.h"
 #include <chrono>
 #include <vector>
 using namespace PSI::DHOPRF;
@@ -88,8 +88,7 @@ void testoprf(){
     for(int i = 0; i < 10 ; i++){
         uint8_t* buffer = new uint8_t[POINT_COMPRESSED_BYTE_LEN];
         auto len =  EC_POINT_point2oct(curve,base,POINT_CONVERSION_COMPRESSED,buffer,POINT_COMPRESSED_BYTE_LEN,bn_ctx);
-        std::cout << len << std::endl;
-        PSI::util::printchar(buffer,POINT_COMPRESSED_BYTE_LEN);
+
     }
 
 
@@ -124,32 +123,41 @@ void testOPRF(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    for(size_t idx = 0; idx < 16 ; idx ++){
+    for(size_t idx = 0; idx < 1024 ; idx ++){
         ReceiverSet.emplace_back(0x123+idx,0x456*idx);
         ServerSet.emplace_back(0x123+idx,0x456*idx);   
     }
     
-    for(size_t idx = 0; idx < 1024 ; idx ++){
+    for(size_t idx = 0; idx < 1048576 ; idx ++){
         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
     }
+
+    PSI::StopWatch oprftimer("oprftimer");
+    oprftimer.setDurationStart("server start");
     auto value = oprfsender.ComputeHashes(ServerSet);
+    oprftimer.setDurationEnd("server start");
+    oprftimer.setDurationStart("client start");
     
     auto qurie = oprfreceier.process_items(ReceiverSet);
     auto query = oprfreceier.process_items_threads(ReceiverSet);
     
     // for(size_t idx = 0; idx < query.size(); idx++){
     //     assert(query[idx] == qurie[idx]);
+
     // }
     
     auto response = oprfsender.ProcessQueriesThread(query);
     auto rvalue = oprfreceier.process_response_threads(response);
-    for(auto x:value){
-         PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
-    }
-    std::cout << std::endl;
-    for(auto x:rvalue){
-         PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
-    }
+    oprftimer.setDurationEnd("client start");
+    
+    // for(auto x:value){
+    //      PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
+    // }
+    // std::cout << std::endl;
+    // for(auto x:rvalue){
+    //      PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
+    // }
+    oprftimer.printDurationRecord();
 }
 void test_OPRF_FourQ(){
     OPRFSender oprfsender;
@@ -165,12 +173,14 @@ void test_OPRF_FourQ(){
         ServerSet.emplace_back(0x123,0x456);   
     }
     
-    for(size_t idx = 0; idx < 1024 ; idx ++){
+    for(size_t idx = 0; idx < 1048576 ; idx ++){
         ServerSet.emplace_back(0x789+idx,0xABC*idx);   
     }
-
+    PSI::StopWatch oprftimer("oprftimer");
+    oprftimer.setDurationStart("server start");
     auto value = oprfsender.ComputeHashesFourQ(ServerSet);
-    
+        oprftimer.setDurationEnd("server start");
+    oprftimer.setDurationStart("client start");
     // auto qurie = oprfreceier.process_itemsFourQ(ReceiverSet);
 
     auto query = oprfreceier.process_items_threadsFourQ(ReceiverSet);
@@ -187,14 +197,16 @@ void test_OPRF_FourQ(){
     //     PSI::util::printchar(x.data(),x.size());
     // }
     auto rvalue = oprfreceier.process_response_threadsFourQ(response);
+    oprftimer.setDurationEnd("client start");
+    oprftimer.printDurationRecord();
 
-    for(auto x:value){
-         PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
-    }
-    std::cout << std::endl;
-    for(auto x:rvalue){
-         PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
-    }
+    // for(auto x:value){
+    //      PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
+    // }
+    // std::cout << std::endl;
+    // for(auto x:rvalue){
+    //      PSI::util::printchar((unsigned char*) x.data(),PSI::OPRFValueBytes);
+    // }
 
 
 }

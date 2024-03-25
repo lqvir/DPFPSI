@@ -233,6 +233,47 @@ namespace PSI
             SessionC.stop();
             ios.stop();
         }
+
+        void PSIServer::DHBased_SIMDDPF_PSI_start(std::string SelfAddress,std::string AidAddress,    const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
+            StopWatch clocks("PSIServer");
+            IOService ios;
+            Session SessionC(ios,SelfAddress,SessionMode::Server);
+            Session SessionA(ios,AidAddress,SessionMode::Client);
+
+            std::vector<Channel> chlsC(ThreadPoolMgr::GetThreadCount());
+            std::vector<Channel> chlsA(ThreadPoolMgr::GetThreadCount());
+            for(auto &chl : chlsC){
+                chl = SessionC.addChannel(); 
+            }
+            for(auto &chl : chlsA){
+                chl = SessionA.addChannel(); 
+            }
+            clocks.setDurationStart("Offline");
+
+            init_FourQ(input,input_Label);
+            chlsA[0].send(reinterpret_cast<uint8_t*>(hash_table.data()),Mask_byte_size*cuckoo::table_size);
+            clocks.setDurationEnd("Offline");
+            // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+            clocks.setDurationStart("online");
+
+            runDHSIMD(chlsC);
+            for(auto &chl : chlsC){
+
+                chl.close();
+            }
+            for(auto &chl : chlsA){
+                Coummunication_Cost += chl.getTotalDataSent()+chl.getTotalDataRecv();
+                chl.close();
+            }
+            std::cout <<"off com size"<<Coummunication_Cost / 1024.0/1024.0  << std::endl;
+            clocks.setDurationEnd("online");
+
+            clocks.printDurationRecord();
+            SessionA.stop();
+            SessionC.stop();
+            ios.stop();
+        }
+
         void PSIServer::GCBasedPSI_start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
             StopWatch clocks("PSIServer");
             IOService ios;
@@ -273,6 +314,46 @@ namespace PSI
             SessionC.stop();
             ios.stop();
         }
+        void PSIServer::GCBased_SIMDDPF_PSI_start(std::string SelfAddress,std::string AidAddress,const std::vector<Item>& input,const std::vector<PSI::Label>& input_Label){
+            StopWatch clocks("PSIServer");
+            IOService ios;
+            Session SessionC(ios,SelfAddress,SessionMode::Server);
+            Session SessionA(ios,AidAddress,SessionMode::Client);
+
+            std::vector<Channel> chlsC(ThreadPoolMgr::GetThreadCount());
+            std::vector<Channel> chlsA(ThreadPoolMgr::GetThreadCount());
+            for(auto &chl : chlsC){
+                chl = SessionC.addChannel(); 
+            }
+            for(auto &chl : chlsA){
+                chl = SessionA.addChannel(); 
+            }
+            clocks.setDurationStart("Offline");
+                
+            auto hash_table = init_GC(input,input_Label);
+    
+            chlsA[0].send(reinterpret_cast<uint8_t*>(hash_table.data()),Mask_byte_size*cuckoo::table_size);
+            clocks.setDurationEnd("Offline");
+            // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+            clocks.setDurationStart("Online");
+
+            runGCSIMD(chlsC);
+            clocks.setDurationEnd("Online");
+
+            for(auto &chl : chlsC){
+
+                chl.close();
+            }
+            for(auto &chl : chlsA){
+                Coummunication_Cost += chl.getTotalDataSent()+chl.getTotalDataRecv();
+                chl.close();
+            }
+            std::cout <<"off com size"<<Coummunication_Cost / 1024.0/1024.0  << std::endl;
+            clocks.printDurationRecord();
+            SessionA.stop();
+            SessionC.stop();
+            ios.stop();
+        }
 
         void PSIServer::runDH(std::vector<Channel>& chlsC){
 
@@ -290,7 +371,7 @@ namespace PSI
 
         }
 
-        void PSIServer::runDHv2(std::vector<Channel>& chlsC){
+        void PSIServer::runDHSIMD(std::vector<Channel>& chlsC){
 
             chlsC[0].send("ok");
             
@@ -315,6 +396,21 @@ namespace PSI
 
             auto ks = std::make_unique<PSI::DPF::DPFKeyEarlyTerminal_ByArrayList>();
             chlsC[0].recv(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
+            auto response_s = DPFShareFullEval(ks);
+            chlsC[0].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));
+
+        }
+
+
+        void PSIServer::runGCSIMD(std::vector<Channel>& chlsC){
+
+            
+            chlsC[0].send("ok");
+            GCOPRFSender.base();
+            GCOPRFSender.Online();
+
+            std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList> ks = std::make_unique<PSI::DPF::pcGGM::DPFKeyList>();
+            chlsC[0].recv(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::pcGGM::DPFKeyList));
             auto response_s = DPFShareFullEval(ks);
             chlsC[0].send(reinterpret_cast<uint8_t*>(response_s.get()),sizeof(PSI::DPF::DPFResponseList));
 

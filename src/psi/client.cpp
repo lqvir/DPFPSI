@@ -399,6 +399,79 @@ namespace PSI
         iosA.stop();
     }
 
+    void PSIClient::DHBased_SIMDDPF_PSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input){
+        StopWatch clocks("PSIClient");
+        clocks.setpoint("start");
+        IOService iosS;
+        IOService iosA;
+        Session sessionS(iosS,ServerAddress,SessionMode::Client);
+        Session sessionA(iosA,AidServerAddress,SessionMode::Client);
+        std::vector<Channel> chlsS(ThreadPoolMgr::GetThreadCount());
+        std::vector<Channel> chlsA(ThreadPoolMgr::GetThreadCount());
+
+        for(auto &chl : chlsS){
+            chl = sessionS.addChannel();
+        }
+        for(auto &chl : chlsA){
+            chl = sessionA.addChannel();
+        }
+
+         std::string OK;
+        chlsS[0].recv(OK);
+        clocks.setpoint("OPRFStart");
+
+        auto query = OPRFQueryThreadFourQ(input);
+        chlsS[0].send(query);
+        std::vector<DHOPRF::OPRFPointFourQ> response(client_set_size_);
+
+        chlsS[0].recv(response);
+
+        auto oprf_value = OPRFResponseThreadFourQ(response);
+
+        clocks.setpoint("OPRFFinish");
+
+        Cuckoo_All_location(oprf_value);
+        // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+
+        std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList> ks = std::make_unique<PSI::DPF::pcGGM::DPFKeyList>();
+        std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList> ka = std::make_unique<PSI::DPF::pcGGM::DPFKeyList>();
+
+        DPFGen(ks,ka);
+        clocks.setpoint("DPFFinish");
+        
+        chlsA[0].send(reinterpret_cast<uint8_t*>(ka.get()),sizeof(PSI::DPF::pcGGM::DPFKeyList));
+        chlsS[0].send(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::pcGGM::DPFKeyList));
+
+        std::unique_ptr<PSI::DPF::DPFResponseList> ResponseS = std::make_unique<PSI::DPF::DPFResponseList>();
+        std::unique_ptr<PSI::DPF::DPFResponseList> ResponseA = std::make_unique<PSI::DPF::DPFResponseList>();
+        chlsS[0].recv(reinterpret_cast<uint8_t*>(ResponseS.get()),sizeof(PSI::DPF::DPFResponseList));
+        chlsA[0].recv(reinterpret_cast<uint8_t*>(ResponseA.get()),sizeof(PSI::DPF::DPFResponseList));
+        clocks.setpoint("Dict Start");
+
+        DictGen(std::move(ResponseS),std::move(ResponseA));
+        clocks.setpoint("Dict Finish");
+
+        InsectionCheck(oprf_value,input);
+        clocks.setpoint("Finish");
+
+        clocks.printTimePointRecord();
+        size_t cnt = 0 ;
+        for(auto chl : chlsS){
+            cnt += chl.getTotalDataSent() + chl.getTotalDataRecv();
+            chl.close();
+        }
+
+        for(auto chl : chlsA){
+            cnt += chl.getTotalDataSent() + chl.getTotalDataRecv();
+            chl.close();
+        }
+        std::cout << "online com" << cnt / 1024.0/1024.0 <<std::endl;
+        sessionS.stop();
+        sessionA.stop();
+        iosS.stop();
+        iosA.stop();
+    }
+
     void PSIClient::GCBasedPSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input){
         StopWatch clocks("PSIClient");
         clocks.setpoint("start");
@@ -452,6 +525,92 @@ namespace PSI
         
         chlsA[0].send(reinterpret_cast<uint8_t*>(ka.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
         chlsS[0].send(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::DPFKeyEarlyTerminal_ByArrayList));
+
+        std::unique_ptr<PSI::DPF::DPFResponseList> ResponseS = std::make_unique<PSI::DPF::DPFResponseList>();
+        std::unique_ptr<PSI::DPF::DPFResponseList> ResponseA = std::make_unique<PSI::DPF::DPFResponseList>();
+        chlsS[0].recv(reinterpret_cast<uint8_t*>(ResponseS.get()),sizeof(PSI::DPF::DPFResponseList));
+        chlsA[0].recv(reinterpret_cast<uint8_t*>(ResponseA.get()),sizeof(PSI::DPF::DPFResponseList));
+
+        DictGen(std::move(ResponseS),std::move(ResponseA));
+        InsectionCheck(std::move(oprf_value),input);
+        clocks.setpoint("Finish");
+        clocks.setDurationEnd("online");
+        clocks.printTimePointRecord();
+        clocks.printDurationRecord();
+        size_t DPFCom = 0 ;
+        for(auto chl : chlsS){
+            DPFCom += chl.getTotalDataSent() + chl.getTotalDataRecv() ;
+            chl.close();
+        }
+
+        for(auto chl : chlsA){
+            DPFCom += chl.getTotalDataSent() + chl.getTotalDataRecv();
+            chl.close();
+        }
+
+        std::cout << "DPF com" << DPFCom / 1024.0/1024.0 <<std::endl;
+        std::cout << "GC com" << GCOPRFCom / 1024.0/1024.0 <<std::endl;
+        std::cout << "Client com" << (GCOPRFCom+DPFCom) / 1024.0/1024.0 <<std::endl;
+
+        sessionS.stop();
+        sessionA.stop();
+        iosS.stop();
+        iosA.stop();
+    }
+
+    void PSIClient::GCBased_SIMDDPF_PSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input){
+        StopWatch clocks("PSIClient");
+        clocks.setpoint("start");
+        IOService iosS;
+        IOService iosA;
+        Session sessionS(iosS,ServerAddress,SessionMode::Client);
+        Session sessionA(iosA,AidServerAddress,SessionMode::Client);
+        std::vector<Channel> chlsS(ThreadPoolMgr::GetThreadCount());
+        std::vector<Channel> chlsA(ThreadPoolMgr::GetThreadCount());
+
+        for(auto &chl : chlsS){
+            chl = sessionS.addChannel();
+        }
+        for(auto &chl : chlsA){
+            chl = sessionA.addChannel();
+        }
+        std::string OK;
+        chlsS[0].recv(OK);
+        clocks.setpoint("OPRFStart");
+
+        auto inputptr = std::make_unique<std::vector<droidCrypto::block>>();
+        inputptr->reserve(input.size());
+        for(auto input_item : input){
+            inputptr->emplace_back(droidCrypto::toBlock(input_item.get_as<uint8_t>().data()));
+        }
+        clocks.setDurationStart("online");
+        
+        GCOPRFReceiver.base(input.size());
+
+        clocks.setpoint("OPRFbase");
+
+        auto oprf_value = GCOPRFReceiver.Online(std::move(inputptr));
+
+
+
+        size_t GCOPRFCom = GCOPRFReceiver.getComCost();
+
+
+
+        clocks.setpoint("OPRFFinish");
+
+        Cuckoo_All_location(oprf_value);
+        // std::cout <<__FILE__<<":" << __LINE__ << std::endl;
+
+        std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList> ks = std::make_unique<PSI::DPF::pcGGM::DPFKeyList>();
+        std::unique_ptr<PSI::DPF::pcGGM::DPFKeyList> ka = std::make_unique<PSI::DPF::pcGGM::DPFKeyList>();
+        clocks.setpoint("DPFStart");
+
+        DPFGen(ks,ka);
+        clocks.setpoint("DPFFinish");
+        
+        chlsA[0].send(reinterpret_cast<uint8_t*>(ka.get()),sizeof(PSI::DPF::pcGGM::DPFKeyList));
+        chlsS[0].send(reinterpret_cast<uint8_t*>(ks.get()),sizeof(PSI::DPF::pcGGM::DPFKeyList));
 
         std::unique_ptr<PSI::DPF::DPFResponseList> ResponseS = std::make_unique<PSI::DPF::DPFResponseList>();
         std::unique_ptr<PSI::DPF::DPFResponseList> ResponseA = std::make_unique<PSI::DPF::DPFResponseList>();

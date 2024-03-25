@@ -21,9 +21,18 @@ namespace PSI{
                 const std::unique_ptr<DPF::DPFKeyEarlyTerminal_ByArrayList>& keylist,
                 const std::vector<LabelMask>& hash_table_input
                 );
+
+            std::unique_ptr<DPF::DPFResponseList> DPFShareFullEval(
+                const std::unique_ptr<DPF::pcGGM::DPFKeyList>& keylist,
+                const std::vector<LabelMask>& hash_table_input
+                );
             void run(const std::vector<LabelMask>& input,std::vector<Channel>& chlsC);
+            void runSIMD(const std::vector<LabelMask>& input,std::vector<Channel>& chlsC);
+
             void DHBasedPSI_start(std::string SelfAddress,std::string ServerAddress);
+            void DHBased_SIMDDPF_PSI_start(std::string SelfAddress,std::string ServerAddress);
             void GCBasedPSI_start(std::string SelfAddress,std::string ServerAddress);
+            void GCBased_SIMDDPF_PSI_start(std::string SelfAddress,std::string ServerAddress);
             
         private:
 

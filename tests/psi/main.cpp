@@ -30,7 +30,7 @@ int main(int argc,char* argv[]){
     clock1.setpoint("start");
     // Test0();
 
-    test_dpf();
+    TestGCSIMD();
     clock1.setpoint("finish early terminal");
     // test_unbanlancedFullEval();
     // clock1.setpoint("finish without early terminal");

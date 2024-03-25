@@ -52,7 +52,9 @@ namespace PSI{
                 void InsectionCheck(const std::unique_ptr<std::vector<PSI::GCOPRF::GCOPRFValue>>& oprf_input,const std::vector<Item>& input);
                 void run(std::string ServerAddress,std::string AidServerAddress,std::unique_ptr<std::vector<Item>> input);
                 void DHBasedPSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input);
+                void DHBased_SIMDDPF_PSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input);
                 void GCBasedPSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input);
+                void GCBased_SIMDDPF_PSI_start(std::string ServerAddress,std::string AidServerAddress,const std::vector<Item>& input);
                 
             private:
                 DHOPRF::OPRFReceiver DHOPRFReceiver;

@@ -59,7 +59,7 @@ namespace PSI
                     for(size_t keyid = 0;keyid < blockcnt; keyid++){
                         auto &value =   dpf_response_list->at(blockid).at(keyid); 
                         const auto& key = dpfkeylist->at(blockid).at(keyid);
-                        uint64_t LeafList[DPF_OUTPUT_U64COUNT];
+                        uint64_t LeafList[DPF_OUTPUT_U64COUNT] = {0};
                         pcGGM::GenTree(key,LeafList);
                         for(size_t idx = 0; idx < cuckoo::block_size; idx++){
                             

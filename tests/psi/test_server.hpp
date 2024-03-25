@@ -114,12 +114,12 @@ void Test2(){
 
 }
 
-void Test3(){
+void TestDH(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
     size_t Rsize = 1;
-    size_t Ssize = 16777216;
+    size_t Ssize = 1048576;
     std::vector<PSI::Label> label(Ssize);
         for(size_t idx = 0;idx < Ssize; idx++){
             uint64_t temp[2];
@@ -164,6 +164,58 @@ void Test3(){
     threads.get();
 
 }
+
+void TestDHSIMD(){
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    size_t Rsize = 512;
+    size_t Ssize = 1048576;
+    std::vector<PSI::Label> label(Ssize);
+        for(size_t idx = 0;idx < Ssize; idx++){
+            uint64_t temp[2];
+            RAND_bytes((uint8_t*)temp,16);
+            ServerSet.emplace_back(temp[0],temp[1]);
+            if(PSI::Label_byte_size != 0){
+                RAND_bytes((uint8_t*)temp,16);
+                label.emplace_back(temp[0],temp[1]);
+            }   
+        }
+    for(size_t idx = 0; idx < Rsize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ReceiverSet.emplace_back(temp[0],temp[1]);
+    }
+    ReceiverSet[0] = ServerSet[0];
+    // for(size_t idx = 0; idx < 32;idx++){
+    //     ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    // }
+    
+    auto lambdaClient = [&](){
+        droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
+
+        PSI::Client::PSIClient client(Rsize,chanc);
+
+        client.DHBased_SIMDDPF_PSI_start("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
+
+    };
+    auto lambdaAidServer = [&](){
+        PSI::AidServer::AidServer aidserver;
+        aidserver.DHBased_SIMDDPF_PSI_start("127.0.0.1:50002","127.0.0.1:50001");
+    };
+    auto threads = std::async(lambdaAidServer);
+
+    auto threadc = std::async(lambdaClient);
+    droidCrypto::CSocketChannel chans("127.0.0.1", 8000, true);
+    
+    PSI::Server::PSIServer server(Ssize,chans);
+
+    server.DHBased_SIMDDPF_PSI_start("127.0.0.1:50000","127.0.0.1:50002",ServerSet,label);
+    threadc.get();
+    threads.get();
+
+}
+
 
 void TestGC(){
     std::vector<PSI::Item> ServerSet;
@@ -211,6 +263,57 @@ void TestGC(){
     PSI::Server::PSIServer server(Ssize,chans);
 
     server.GCBasedPSI_start("127.0.0.1:50000","127.0.0.1:50002",ServerSet,label);
+    threadc.get();
+    threads.get();
+
+}
+
+void TestGCSIMD(){
+    std::vector<PSI::Item> ServerSet;
+    std::vector<PSI::Item> ReceiverSet;
+
+    size_t Rsize = 4096;
+    size_t Ssize = 4194304;
+    std::vector<PSI::Label> label(Ssize);
+        for(size_t idx = 0;idx < Ssize; idx++){
+            uint64_t temp[2];
+            RAND_bytes((uint8_t*)temp,16);
+            ServerSet.emplace_back(temp[0],temp[1]);
+            if(PSI::Label_byte_size != 0){
+                RAND_bytes((uint8_t*)temp,16);
+                label.emplace_back(temp[0],temp[1]);
+            }   
+        }
+    for(size_t idx = 0; idx < Rsize; idx++){
+        uint64_t temp[2];
+        RAND_bytes((uint8_t*)temp,16);
+        ReceiverSet.emplace_back(temp[0],temp[1]);
+    }
+    ReceiverSet[0] = ServerSet[0];
+    for(size_t idx = 0; idx < 32;idx++){
+        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    }
+    
+    auto lambdaClient = [&](){
+        droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
+
+        PSI::Client::PSIClient client(Rsize,chanc);
+
+        client.GCBased_SIMDDPF_PSI_start("127.0.0.1:50000","127.0.0.1:50001",ReceiverSet);
+
+    };
+    auto lambdaAidServer = [&](){
+        PSI::AidServer::AidServer aidserver;
+        aidserver.GCBased_SIMDDPF_PSI_start("127.0.0.1:50002","127.0.0.1:50001");
+    };
+    auto threads = std::async(lambdaAidServer);
+
+    auto threadc = std::async(lambdaClient);
+    droidCrypto::CSocketChannel chans("127.0.0.1", 8000, true);
+    
+    PSI::Server::PSIServer server(Ssize,chans);
+
+    server.GCBased_SIMDDPF_PSI_start("127.0.0.1:50000","127.0.0.1:50002",ServerSet,label);
     threadc.get();
     threads.get();
 
