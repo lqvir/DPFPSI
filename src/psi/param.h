@@ -4,7 +4,7 @@
 namespace PSI
 {
     constexpr size_t Label_bit_size = 256;
-    constexpr size_t Label_byte_size = 16;
+    constexpr size_t Label_byte_size = 32;
 
     constexpr size_t Leading_zero_length =  5;
     constexpr size_t Item_byte_size = 16;
@@ -151,7 +151,7 @@ namespace PSI
         }
 
 
-        using namespace cuckooparam222vs4096;
+        using namespace cuckooparam224vs4096;
 
     } // namespace cuckoo
     

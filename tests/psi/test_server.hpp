@@ -8,12 +8,12 @@
 
 
 
-void testXor(){
-    PSI::LabelMask a{std::array<uint8_t,PSI::Mask_byte_size>{1,2,3,4,5,6,7,8}};
-    PSI::LabelMask b{std::array<uint8_t,PSI::Mask_byte_size>{0}};
-    b = PSI::xor_LabelMask(a,b);
-    PSI::util::printchar(a.value().data(),16);
-}
+// void testXor(){
+//     PSI::LabelMask a{std::array<uint8_t,PSI::Mask_byte_size>{1,2,3,4,5,6,7,8}};
+//     PSI::LabelMask b{std::array<uint8_t,PSI::Mask_byte_size>{0}};
+//     b = PSI::xor_LabelMask(a,b);
+//     PSI::util::printchar(a.value().data(),16);
+// }
 
 
 
@@ -118,7 +118,7 @@ void TestDH(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    size_t Rsize = 1;
+    size_t Rsize = 1024;
     size_t Ssize = 1048576;
     std::vector<PSI::Label> label(Ssize);
         for(size_t idx = 0;idx < Ssize; idx++){
@@ -169,8 +169,8 @@ void TestDHSIMD(){
     std::vector<PSI::Item> ServerSet;
     std::vector<PSI::Item> ReceiverSet;
 
-    size_t Rsize = 512;
-    size_t Ssize = 1048576;
+    size_t Rsize = 4096; 
+    size_t Ssize = 16777216;
     std::vector<PSI::Label> label(Ssize);
         for(size_t idx = 0;idx < Ssize; idx++){
             uint64_t temp[2];
@@ -186,10 +186,10 @@ void TestDHSIMD(){
         RAND_bytes((uint8_t*)temp,16);
         ReceiverSet.emplace_back(temp[0],temp[1]);
     }
-    ReceiverSet[0] = ServerSet[0];
-    // for(size_t idx = 0; idx < 32;idx++){
-    //     ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
-    // }
+    // ReceiverSet[0] = ServerSet[0];
+    for(size_t idx = 0; idx < 32;idx++){
+        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    }
     
     auto lambdaClient = [&](){
         droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
@@ -273,7 +273,7 @@ void TestGCSIMD(){
     std::vector<PSI::Item> ReceiverSet;
 
     size_t Rsize = 4096;
-    size_t Ssize = 4194304;
+    size_t Ssize = 16777216;
     std::vector<PSI::Label> label(Ssize);
         for(size_t idx = 0;idx < Ssize; idx++){
             uint64_t temp[2];
@@ -290,9 +290,9 @@ void TestGCSIMD(){
         ReceiverSet.emplace_back(temp[0],temp[1]);
     }
     ReceiverSet[0] = ServerSet[0];
-    for(size_t idx = 0; idx < 32;idx++){
-        ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
-    }
+    // for(size_t idx = 0; idx < 32;idx++){
+    //     ReceiverSet[idx*5+7*11] = ServerSet[idx*5+7*11];
+    // }
     
     auto lambdaClient = [&](){
         droidCrypto::CSocketChannel chanc("127.0.0.1", 8000, false);
