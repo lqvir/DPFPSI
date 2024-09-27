@@ -13,7 +13,6 @@ namespace PSI
          
             // GC OPRF Prepare
   
-
             auto elements = std::make_unique<std::vector<droidCrypto::block>>();
             for(auto item : input){
                 elements->emplace_back(droidCrypto::toBlock(item.get_as<uint8_t>().data()));
@@ -22,7 +21,6 @@ namespace PSI
             auto output =  GCOPRFSender.setup(std::move(elements));
 
 
-            std::cout << __LINE__ << std::endl;
 
             
             kuku::KukuTable cuckoo_table(
@@ -91,7 +89,6 @@ namespace PSI
             DHOPRFSender.init();
             auto output = DHOPRFSender.ComputeHashesFourQ(input);
         
-            std::cout << __LINE__ << std::endl;
 
 #if  LogLevel == 0
 

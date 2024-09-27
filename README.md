@@ -12,6 +12,7 @@ vcpkg install openssl
 vcpkg install ms-gsl
 vcpkg install boost-system 
 vcpkg install boost-regex
+vcpkg install boost-asio
 ```
 
 ### Build
